@@ -1,4 +1,5 @@
-"""Network sensor: netstat flow table + beacon-cadence (periodicity) detection.
+"""Network sensor: netstat flow table + beacon-cadence (periodicity) detection
++ non-service listener detection (imix tcp_bind transport).
 
 Per (pid, peer) we keep connection timestamps; a peer whose inter-arrival gaps
 stay near-constant (low coefficient of variation) across >= MIN_OBS samples is
@@ -13,6 +14,55 @@ LOOPBACK = ("127.", "::1")
 
 _flows = {}            # (pid, peer) -> list of first-seen timestamps
 _flagged = set()
+_listeners = {}        # (pid, port) -> alert-raised marker
+KNOWN_SERVICE_PORTS = {80, 443, 445, 139, 135, 3389, 5985, 5986, 22, 21, 25, 53,
+                       1433, 3306, 5432, 8080, 8443, 47001, 49664, 49665, 49666}
+SERVICE_IMG_PREFIXES = (r"c:\windows", r"c:\program files")
+
+def check_listeners():
+    """Flag processes LISTENING on non-standard ports from non-service paths -
+    the imix tcp_bind inverted transport (agent chains await inbound connects)
+    and netcat-style backdoors."""
+    r = subprocess.run(["netstat", "-ano", "-p", "tcp"], capture_output=True,
+                       text=True, errors="replace", timeout=30)
+    for line in (r.stdout or "").splitlines():
+        if "LISTENING" not in line:
+            continue
+        parts = line.split()
+        if len(parts) < 5:
+            continue
+        try:
+            pid = int(parts[4])
+            port = int(parts[1].rsplit(":", 1)[1])
+        except ValueError:
+            continue
+        if port in KNOWN_SERVICE_PORTS or (pid, port) in _listeners or pid in (0, 4):
+            continue
+        _listeners[(pid, port)] = True
+        out = subprocess.run(["powershell", "-NoProfile", "-Command",
+                              "Get-CimInstance Win32_Process -Filter 'ProcessId=%d' | "
+                              "Select-Object Name,ExecutablePath | ConvertTo-Json -Compress" % pid],
+                             capture_output=True, text=True, errors="replace", timeout=30).stdout
+        import json
+        try:
+            info = json.loads(out) if out.strip() else None
+        except json.JSONDecodeError:
+            info = None
+        name = (info or {}).get("Name") or "?"
+        path = ((info or {}).get("ExecutablePath") or "").lower()
+        if any(path.startswith(p) for p in SERVICE_IMG_PREFIXES if p):
+            continue                        # signed/installed service binary
+        rec = state.norm_event("network", "network", "high",
+                               "Non-service listener: %s (pid %d) on port %d" % (name, pid, port),
+                               {"pid": pid, "peer": "0.0.0.0:%d" % port, "port": port,
+                                "path": path, "cmdline": path or name})
+        state.raise_alert(
+            "NET-LISTENER", "high", "%s listening on port %d" % (name, port),
+            "A process running from a non-service path is accepting inbound TCP on a "
+            "non-standard port. This is the imix 'tcp_bind' inverted-transport posture "
+            "(the implant listens for operator/inbound chaining) and the netcat-backdoor "
+            "pattern. Legitimate listeners run from Windows/Program Files on expected ports.",
+            event=rec, data={"pid": pid, "port": port, "path": path})
 
 ROW = re.compile(r"^\s*\S+\s+(\S+)\s+(\S+)\s+\S+\s+(\d+)")
 
@@ -40,6 +90,7 @@ def poll_once():
         if now - (_flows[k][-1] if _flows[k] else 0) > 60:
             del _flows[k]
     detect_beacons()
+    check_listeners()
     return len(rows)
 
 def cadence_snapshot():
