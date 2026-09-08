@@ -1,8 +1,51 @@
-# ccdc-siem-edr - UI only
+# ccdc-siem-edr - UI + working sensor backend
 
-Interface for a lightweight, browser-only EDR/SIEM console built for CCDC-style
-blue-team practice. This branch (`edr-ui-only`) is **the interface layer only**:
-no ingest, no rules engine, no detection logic, no data files.
+Interface for a CCDC-style blue-team EDR/SIEM console, plus the Python sensor
+backend that feeds it live telemetry on Windows. Pure stdlib - no third-party
+packages, no agent install, run as Administrator.
+
+## Run the EDR
+
+```
+python -m edr              # console + sensors at http://127.0.0.1:8420
+python tests/run_tests.py  # benign live-fire payload suite (separate shell)
+```
+
+The backend serves a fully live five-screen console (`edr/live_console.html`) — every
+number, row, chart, and rule toggle is wired to the sensor API; there is no sample data:
+
+- **Dashboard** — severity tiles, ingest sparkline, sensor status, one-click
+  audit/scan/re-baseline actions
+- **Log Explorer** — faceted filters with proportional count bars, search, detail drawer
+- **Alerts** — grouped by rule, ack/resolve triage, "why this fired" panel, beacon cadence plot
+- **Signatures** — rule toggles with live hit counts, live rule-test panel, signature pack hits
+- **Threat Intel** — framework indicator cards (Havoc/CS/Mythic/Realm) with live hit counts,
+  stage-by-stage attack chain
+
+API:
+
+- `GET /api/state` - events, alerts, scans, stats, rules
+- `GET /api/rules`, `GET /api/scans`
+- `POST /api/baseline` (re-arm the persistence T0 baseline), `POST /api/scan`,
+  `POST /api/audit` (force a persistence diff now)
+
+### Sensors
+
+| Sensor | What it does |
+| --- | --- |
+| ETW kernel trace | Starts the reserved NT Kernel Logger session (process events) -> `edr/state/kernel.etl` for forensics |
+| Windows event channels | Security 4688 (cmd lines, auditing auto-enabled), 4698/4702/4720/1102, System 7045/7040, PowerShell 4104, Sysmon if present |
+| Process poll | WMI Win32_Process with full command lines; on-launch signature scan of images from user-writable paths |
+| Persistence auditor | Run keys, services, tasks, Startup folders, WMI subscriptions, IFEO/AppInit - baseline + 30s diff |
+| Signature scanner | YARA-style byte rules (Realm imix, Rust implants, musl ELF, eldritch tomes, webshells, CS/Havoc) on write/launch in drop zones (`edr/signatures.py`) |
+| Beacon cadence | netstat flow table; jitter-tolerant periodicity analysis per (pid, peer) |
+
+The "YARA rules" live in `edr/signatures.py`; detection rules (Sigma-like,
+with why-this-fired text) live in `edr/rules.py`. Runtime state (baseline,
+eventlog bookmarks, kernel.etl) is written to `edr/state/` and gitignored.
+
+Test payload research and the implementation/test reports are in
+`development-research/`.
 
 ## Run it
 
