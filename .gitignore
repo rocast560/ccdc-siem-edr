@@ -18,3 +18,6 @@ desktop.ini
 
 # runtime logs
 *.log
+
+# scratch
+delete
