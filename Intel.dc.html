@@ -1,0 +1,306 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root{
+      --bg:#1C2127; --panel:#252A31; --raised:#2F343C; --well:#111418;
+      --line:#383E47; --fg:#F6F7F9; --fg2:#ABB3BF; --fg3:#8F99A8; --fg4:#738091;
+      --blue:#2D72D2; --blue4:#4C90F0; --blue5:#8ABBFF; --green5:#72CA9B; --violet:#BDADFF;
+      --ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+      --mono:"SFMono-Regular","Cascadia Mono",Consolas,"Liberation Mono",monospace;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--fg);font:400 13px/1.3 var(--ui);-webkit-font-smoothing:antialiased}
+    a{color:var(--blue5);text-decoration:none}
+    a:hover{color:#AECBFA;text-decoration:underline}
+    .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+    .lbl{font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--fg4)}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:2px}
+    .ph{height:30px;display:flex;align-items:center;gap:8px;padding:0 10px;border-bottom:1px solid var(--line);flex:none}
+    .btn{height:24px;display:inline-flex;align-items:center;gap:6px;padding:0 10px;border-radius:2px;background:#383E47;color:var(--fg);border:none;font:500 12px var(--ui);white-space:nowrap}
+    .btn-primary{background:var(--blue);color:#fff}
+    .btn-min{background:transparent;color:var(--fg2)}
+    .tag{display:inline-flex;align-items:center;height:16px;padding:0 5px;border-radius:2px;font:600 10px/1 var(--mono);letter-spacing:.02em}
+    .dot{width:7px;height:7px;border-radius:1px;flex:none}
+    .ind{display:flex;flex-direction:column;gap:5px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+    .navitem{display:flex;align-items:center;gap:8px;height:26px;padding:0 12px;font-size:12px;color:#ABB3BF}
+    .navitem-on{background:rgba(45,114,210,.18);color:#FFFFFF;box-shadow:inset 2px 0 0 #4C90F0;font-weight:500}
+  </style>
+</helmet>
+
+<div style="width:1600px;height:1000px;display:flex;flex-direction:column;background:#1C2127;overflow:hidden">
+
+  <!-- NAVBAR -->
+  <div style="height:50px;flex:none;display:flex;align-items:center;padding:0 14px;background:#252A31;border-bottom:1px solid #111418;box-shadow:0 1px 1px rgba(17,20,24,.4)">
+    <div style="display:flex;align-items:center;gap:9px;padding-right:16px">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M10 1.5 17.5 5.5v6.2c0 3.1-3 5.7-7.5 6.8-4.5-1.1-7.5-3.7-7.5-6.8V5.5L10 1.5Z" stroke="#4C90F0" stroke-width="1.4" fill="rgba(45,114,210,.16)"></path>
+        <path d="M6.6 9.9 9.1 12.4 13.6 7.6" stroke="#8ABBFF" stroke-width="1.6" stroke-linecap="square"></path>
+      </svg>
+      <div style="font:600 14px var(--ui);letter-spacing:.02em;color:#F6F7F9">CCDC<span style="color:#5F6B7C">·</span>EDR</div>
+    </div>
+    <div style="width:1px;height:22px;background:#383E47"></div>
+    <div style="display:flex;align-items:stretch;height:50px;margin-left:6px">
+      <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#ABB3BF">Dashboard</div>
+      <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#ABB3BF">Log Explorer</div>
+      <div style="display:flex;align-items:center;gap:6px;padding:0 15px;font:400 12.5px var(--ui);color:#ABB3BF">Alerts <span class="tag" style="background:rgba(205,66,70,.18);color:#FA999C">79</span></div>
+      <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#ABB3BF">Signatures</div>
+      <div style="display:flex;align-items:center;padding:0 15px;font:600 12.5px var(--ui);color:#FFFFFF;box-shadow:inset 0 -2px 0 #4C90F0">Threat Intel</div>
+    </div>
+    <div style="flex-grow:1"></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="mono" style="font-size:11px;color:#738091">41/47 rules</div>
+      <div style="width:1px;height:18px;background:#383E47"></div>
+      <div class="mono" style="font-size:11px;color:#8F99A8">2026-03-14 14:02:07Z</div>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div style="height:40px;flex:none;display:flex;align-items:center;gap:8px;padding:0 14px;background:#1C2127;border-bottom:1px solid #383E47">
+    <div style="display:flex;height:26px;border-radius:2px;overflow:hidden;box-shadow:inset 0 0 0 1px #404854">
+      <span style="display:flex;align-items:center;padding:0 12px;font:600 11.5px var(--ui);background:#383E47;color:#F6F7F9">Frameworks</span>
+      <span style="display:flex;align-items:center;padding:0 12px;font:400 11.5px var(--ui);color:#ABB3BF">Technique library</span>
+      <span style="display:flex;align-items:center;padding:0 12px;font:400 11.5px var(--ui);color:#ABB3BF">Attack chains</span>
+      <span style="display:flex;align-items:center;padding:0 12px;font:400 11.5px var(--ui);color:#ABB3BF">Coverage matrix</span>
+    </div>
+    <div style="width:260px;height:26px;display:flex;align-items:center;gap:7px;padding:0 8px;background:#111418;border-radius:2px;box-shadow:inset 0 0 0 1px #404854">
+      <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4.2" stroke="#738091" stroke-width="1.4"></circle><path d="M9.2 9.2 12 12" stroke="#738091" stroke-width="1.4"></path></svg>
+      <span style="font-size:11.5px;color:#5F6B7C">Search techniques, ATT&amp;CK IDs, Event IDs…</span>
+    </div>
+    <div style="flex-grow:1"></div>
+    <span class="mono" style="font-size:11px;color:#738091">source: research/01-c2-frameworks.md</span>
+    <button class="btn" style="height:26px">Open Markdown</button>
+  </div>
+
+  <!-- BODY -->
+  <div style="flex-grow:1;display:flex;min-height:0">
+
+    <!-- LEFT NAV -->
+    <div style="width:224px;flex:none;background:#252A31;border-right:1px solid #383E47;display:flex;flex-direction:column;min-height:0">
+      <div style="padding:11px 12px 6px" class="lbl">C2 frameworks</div>
+      <div class="navitem navitem-on"><span class="dot" style="background:#CD4246"></span>Havoc <span style="flex-grow:1"></span><span class="mono" style="font-size:10px;color:#8F99A8">9</span></div>
+      <div class="navitem"><span class="dot" style="background:#EC9A3C"></span>Cobalt Strike <span style="flex-grow:1"></span><span class="mono" style="font-size:10px;color:#5F6B7C">11</span></div>
+      <div class="navitem"><span class="dot" style="background:#EC9A3C"></span>Mythic <span style="flex-grow:1"></span><span class="mono" style="font-size:10px;color:#5F6B7C">7</span></div>
+      <div class="navitem"><span class="dot" style="background:#FBD065"></span>Realm / Imix <span style="flex-grow:1"></span><span class="mono" style="font-size:10px;color:#5F6B7C">6</span></div>
+
+      <div style="padding:14px 12px 6px" class="lbl">Techniques</div>
+      <div class="navitem">Evasion <span style="flex-grow:1"></span><span class="mono" style="font-size:10px;color:#5F6B7C">14</span></div>
+      <div class="navitem">Persistence · Windows <span style="flex-grow:1"></span><span class="mono" style="font-size:10px;color:#5F6B7C">9</span></div>
+      <div class="navitem">Persistence · Linux <span style="flex-grow:1"></span><span class="mono" style="font-size:10px;color:#5F6B7C">6</span></div>
+      <div class="navitem">Active Directory <span style="flex-grow:1"></span><span class="mono" style="font-size:10px;color:#5F6B7C">4</span></div>
+
+      <div style="padding:14px 12px 6px" class="lbl">Chains</div>
+      <div class="navitem">Havoc — workstation <span style="flex-grow:1"></span><span class="tag" style="background:rgba(35,133,81,.18);color:#72CA9B">6/6</span></div>
+      <div class="navitem">CS — lateral + service <span style="flex-grow:1"></span><span class="tag" style="background:rgba(236,154,60,.16);color:#F5B871">5/6</span></div>
+      <div class="navitem">Realm — Linux gRPC <span style="flex-grow:1"></span><span class="tag" style="background:rgba(236,154,60,.16);color:#F5B871">4/5</span></div>
+
+      <div style="flex-grow:1"></div>
+      <div style="padding:10px 12px;border-top:1px solid #383E47;background:rgba(45,114,210,.06)">
+        <div style="font-size:10.5px;line-height:1.5;color:#8F99A8">Defensive reference only. Every entry maps an <span style="color:#C5CBD3">observable artifact</span> to a detection rule — no offensive tooling ships with this console.</div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div style="flex-grow:1;display:flex;flex-direction:column;gap:12px;padding:12px;min-width:0">
+
+      <!-- FRAMEWORK HEADER -->
+      <div class="panel" style="flex:none;padding:14px 16px">
+        <div style="display:flex;align-items:flex-start;gap:16px">
+          <div style="flex-grow:1;min-width:0;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font:500 19px var(--ui);color:#FFFFFF;letter-spacing:-.01em">Havoc</span>
+              <span class="tag" style="height:18px;background:rgba(205,66,70,.2);color:#FA999C">HIGH PREVALENCE</span>
+              <span class="mono" style="font-size:11px;color:#738091">agent: Demon</span>
+            </div>
+            <div style="font-size:12.5px;line-height:1.5;color:#ABB3BF;max-width:940px">Open-source post-exploitation framework. The Demon agent leans on indirect syscalls, sleep obfuscation (Ekko) and return-address spoofing, so user-mode API hooking sees little. Detection value concentrates in <span style="color:#F6F7F9">memory-allocation shape</span>, <span style="color:#F6F7F9">thread creation without a matching stub</span>, and the <span style="color:#F6F7F9">timing regularity</span> of its default HTTP listener.</div>
+          </div>
+          <div style="display:flex;gap:0;flex:none;border:1px solid #383E47;border-radius:2px">
+            <div style="padding:8px 14px;border-right:1px solid #383E47"><div class="lbl">Indicators</div><div class="mono" style="font-size:19px;color:#F6F7F9;padding-top:4px">9</div></div>
+            <div style="padding:8px 14px;border-right:1px solid #383E47"><div class="lbl">Rules</div><div class="mono" style="font-size:19px;color:#F6F7F9;padding-top:4px">5</div></div>
+            <div style="padding:8px 14px"><div class="lbl">Coverage</div><div class="mono" style="font-size:19px;color:#72CA9B;padding-top:4px">6/6</div></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;padding-top:11px">
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">transport: HTTP/HTTPS, SMB pipe</span>
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">default listener port: 443</span>
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">sleep: Ekko / Foliage</span>
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">team server: Havoc</span>
+          <span style="width:1px;height:16px;background:#383E47;margin:0 4px"></span>
+          <span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">T1055.002</span>
+          <span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">T1620</span>
+          <span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">T1071.001</span>
+          <span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">T1027.007</span>
+        </div>
+      </div>
+
+      <!-- INDICATOR COLUMNS -->
+      <div style="flex:none;display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:12px">
+
+        <div class="panel" style="display:flex;flex-direction:column">
+          <div class="ph"><span class="lbl" style="color:#ABB3BF">Network indicators</span><div style="flex-grow:1"></div><span class="mono" style="font-size:10.5px;color:#5F6B7C">zeek · suricata</span></div>
+          <div style="padding:0 12px 8px">
+            <div class="ind">
+              <div style="font-size:12px;color:#F6F7F9;line-height:1.4">Fixed sleep interval with narrow jitter — σ under 12 % of the mean across 20+ callbacks</div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap"><span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">T1071.001</span><span class="tag" style="background:#2F343C;color:#8F99A8">zeek conn</span><span class="tag mono" style="background:rgba(45,114,210,.18);color:#8ABBFF">EDR-C2-BEACON-007</span></div>
+            </div>
+            <div class="ind">
+              <div style="font-size:12px;color:#F6F7F9;line-height:1.4">Default profile URIs and a user-agent that appears on exactly one host in the estate</div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap"><span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">T1071.001</span><span class="tag" style="background:#2F343C;color:#8F99A8">zeek http</span><span class="tag mono" style="background:rgba(45,114,210,.18);color:#8ABBFF">EDR-C2-UA-RARE-011</span></div>
+            </div>
+            <div class="ind" style="border-bottom:none">
+              <div style="font-size:12px;color:#F6F7F9;line-height:1.4">Self-signed certificate on the team-server listener; stable JA3/JA3S across sessions</div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap"><span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">T1573</span><span class="tag" style="background:#2F343C;color:#8F99A8">zeek ssl</span><span class="tag mono" style="background:rgba(45,114,210,.18);color:#8ABBFF">EDR-C2-SELFSIGN-014</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" style="display:flex;flex-direction:column">
+          <div class="ph"><span class="lbl" style="color:#ABB3BF">Host indicators</span><div style="flex-grow:1"></div><span class="mono" style="font-size:10.5px;color:#5F6B7C">sysmon</span></div>
+          <div style="padding:0 12px 8px">
+            <div class="ind">
+              <div style="font-size:12px;color:#F6F7F9;line-height:1.4">RWX allocation in a remote process followed by CreateRemoteThread within the same second</div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap"><span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">T1055.002</span><span class="tag" style="background:#2F343C;color:#8F99A8">Sysmon 8 · 10</span><span class="tag mono" style="background:rgba(45,114,210,.18);color:#8ABBFF">EDR-C2-HAVOC-003</span></div>
+            </div>
+            <div class="ind">
+              <div style="font-size:12px;color:#F6F7F9;line-height:1.4">Second <span class="mono" style="font-size:11px">ntdll.dll</span> mapping outside KnownDlls — the unhooking tell</div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap"><span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">T1562.006</span><span class="tag" style="background:#2F343C;color:#8F99A8">Sysmon 7</span><span class="tag mono" style="background:rgba(45,114,210,.18);color:#8ABBFF">EDR-EVA-UNHOOK-002</span></div>
+            </div>
+            <div class="ind" style="border-bottom:none">
+              <div style="font-size:12px;color:#F6F7F9;line-height:1.4">Thread start address not backed by a loaded module (unbacked execution)</div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap"><span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">T1620</span><span class="tag" style="background:#2F343C;color:#8F99A8">Sysmon 8</span><span class="tag mono" style="background:rgba(45,114,210,.18);color:#8ABBFF">EDR-EVA-UNBACKED-006</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" style="display:flex;flex-direction:column">
+          <div class="ph"><span class="lbl" style="color:#ABB3BF">Config &amp; default tells</span><div style="flex-grow:1"></div><span class="mono" style="font-size:10.5px;color:#5F6B7C">baseline drift</span></div>
+          <div style="padding:0 12px 8px">
+            <div class="ind">
+              <div style="font-size:12px;color:#F6F7F9;line-height:1.4">SMB pivot uses a named pipe; operators who keep the default name leave a stable string</div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap"><span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">T1090.001</span><span class="tag" style="background:#2F343C;color:#8F99A8">Sysmon 17 · 18</span><span class="tag mono" style="background:rgba(45,114,210,.18);color:#8ABBFF">EDR-C2-PIPE-005</span></div>
+            </div>
+            <div class="ind">
+              <div style="font-size:12px;color:#F6F7F9;line-height:1.4">Sleep obfuscation leaves the beacon's region non-readable between callbacks — periodic RW→RX flips</div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap"><span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">T1027.007</span><span class="tag" style="background:#2F343C;color:#8F99A8">Sysmon 25</span><span class="tag" style="background:transparent;color:#738091;box-shadow:inset 0 0 0 1px #404854">no rule yet</span></div>
+            </div>
+            <div class="ind" style="border-bottom:none">
+              <div style="font-size:12px;color:#F6F7F9;line-height:1.4">Verify against: Elastic Security Labs · SpecterOps · Red Canary · SigmaHQ · the framework's own repo</div>
+              <div style="font-size:10.5px;color:#5F6B7C">Links were not freshly fetched — see research/README.md</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ATTACK CHAIN -->
+      <div class="panel" style="flex-grow:1;display:flex;flex-direction:column;min-height:0">
+        <div class="ph">
+          <span class="lbl" style="color:#ABB3BF">Attack chain — Havoc on a workstation</span>
+          <span class="tag" style="background:rgba(35,133,81,.18);color:#72CA9B">6 of 6 stages covered</span>
+          <div style="flex-grow:1"></div>
+          <span class="mono" style="font-size:10.5px;color:#5F6B7C">correlated by EDR-COR-KILLCHAIN-001 · window 300 s · by host</span>
+          <button class="btn btn-min" style="height:20px;font-size:11px">Load this scenario →</button>
+        </div>
+
+        <div style="flex-grow:1;padding:16px 16px 12px;display:flex;flex-direction:column;justify-content:center;gap:14px">
+
+          <div style="display:flex;align-items:stretch;gap:0">
+
+            <div style="width:198px;flex:none;display:flex;flex-direction:column;gap:7px;padding:10px;background:#1C2127;border:1px solid #404854;border-radius:2px">
+              <div style="display:flex;align-items:center;gap:7px"><span class="mono" style="font-size:10px;color:#5F6B7C">01</span><span class="lbl" style="color:#8F99A8">Initial access</span></div>
+              <div style="font:500 12.5px var(--ui);color:#F6F7F9;line-height:1.35">Macro spawns mshta</div>
+              <div class="mono" style="font-size:10.5px;color:#8F99A8">Sysmon 1 · parent WINWORD</div>
+              <div style="display:flex;gap:4px;flex-wrap:wrap;padding-top:2px"><span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">T1218.005</span></div>
+              <div style="display:flex;align-items:center;gap:6px;margin-top:auto;padding-top:6px;border-top:1px solid rgba(255,255,255,.07)"><span class="dot" style="background:#EC9A3C"></span><span class="mono" style="font-size:10px;color:#8ABBFF">EDR-EVA-LOLBIN-004</span></div>
+            </div>
+
+            <div style="width:32px;flex:none;display:flex;align-items:center;justify-content:center">
+              <svg width="26" height="10" viewBox="0 0 26 10" fill="none"><path d="M0 5h22M18.5 1.5 22 5l-3.5 3.5" stroke="#5F6B7C" stroke-width="1.3"></path></svg>
+            </div>
+
+            <div style="width:198px;flex:none;display:flex;flex-direction:column;gap:7px;padding:10px;background:#1C2127;border:1px solid #404854;border-radius:2px">
+              <div style="display:flex;align-items:center;gap:7px"><span class="mono" style="font-size:10px;color:#5F6B7C">02</span><span class="lbl" style="color:#8F99A8">Execution</span></div>
+              <div style="font:500 12.5px var(--ui);color:#F6F7F9;line-height:1.35">Encoded PowerShell, AMSI patched</div>
+              <div class="mono" style="font-size:10.5px;color:#8F99A8">PowerShell 4104</div>
+              <div style="display:flex;gap:4px;flex-wrap:wrap;padding-top:2px"><span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">T1059.001</span><span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">T1562.001</span></div>
+              <div style="display:flex;align-items:center;gap:6px;margin-top:auto;padding-top:6px;border-top:1px solid rgba(255,255,255,.07)"><span class="dot" style="background:#CD4246"></span><span class="mono" style="font-size:10px;color:#8ABBFF">EDR-EVA-AMSI-001</span></div>
+            </div>
+
+            <div style="width:32px;flex:none;display:flex;align-items:center;justify-content:center">
+              <svg width="26" height="10" viewBox="0 0 26 10" fill="none"><path d="M0 5h22M18.5 1.5 22 5l-3.5 3.5" stroke="#5F6B7C" stroke-width="1.3"></path></svg>
+            </div>
+
+            <div style="width:198px;flex:none;display:flex;flex-direction:column;gap:7px;padding:10px;background:#1C2127;border:1px solid #404854;border-radius:2px">
+              <div style="display:flex;align-items:center;gap:7px"><span class="mono" style="font-size:10px;color:#5F6B7C">03</span><span class="lbl" style="color:#8F99A8">Defense evasion</span></div>
+              <div style="font:500 12.5px var(--ui);color:#F6F7F9;line-height:1.35">NTDLL remapped from disk</div>
+              <div class="mono" style="font-size:10.5px;color:#8F99A8">Sysmon 7 · not KnownDlls</div>
+              <div style="display:flex;gap:4px;flex-wrap:wrap;padding-top:2px"><span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">T1562.006</span></div>
+              <div style="display:flex;align-items:center;gap:6px;margin-top:auto;padding-top:6px;border-top:1px solid rgba(255,255,255,.07)"><span class="dot" style="background:#EC9A3C"></span><span class="mono" style="font-size:10px;color:#8ABBFF">EDR-EVA-UNHOOK-002</span></div>
+            </div>
+
+            <div style="width:32px;flex:none;display:flex;align-items:center;justify-content:center">
+              <svg width="26" height="10" viewBox="0 0 26 10" fill="none"><path d="M0 5h22M18.5 1.5 22 5l-3.5 3.5" stroke="#5F6B7C" stroke-width="1.3"></path></svg>
+            </div>
+
+            <div style="width:198px;flex:none;display:flex;flex-direction:column;gap:7px;padding:10px;background:rgba(205,66,70,.08);border:1px solid rgba(205,66,70,.45);border-radius:2px">
+              <div style="display:flex;align-items:center;gap:7px"><span class="mono" style="font-size:10px;color:#5F6B7C">04</span><span class="lbl" style="color:#FA999C">Injection</span></div>
+              <div style="font:500 12.5px var(--ui);color:#FFFFFF;line-height:1.35">RWX alloc into explorer.exe</div>
+              <div class="mono" style="font-size:10.5px;color:#ABB3BF">Sysmon 8 · 10 · 0x1F3FFF</div>
+              <div style="display:flex;gap:4px;flex-wrap:wrap;padding-top:2px"><span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">T1055.002</span><span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">T1620</span></div>
+              <div style="display:flex;align-items:center;gap:6px;margin-top:auto;padding-top:6px;border-top:1px solid rgba(255,255,255,.07)"><span class="dot" style="background:#CD4246"></span><span class="mono" style="font-size:10px;color:#8ABBFF">EDR-C2-HAVOC-003</span></div>
+            </div>
+
+            <div style="width:32px;flex:none;display:flex;align-items:center;justify-content:center">
+              <svg width="26" height="10" viewBox="0 0 26 10" fill="none"><path d="M0 5h22M18.5 1.5 22 5l-3.5 3.5" stroke="#5F6B7C" stroke-width="1.3"></path></svg>
+            </div>
+
+            <div style="width:198px;flex:none;display:flex;flex-direction:column;gap:7px;padding:10px;background:#1C2127;border:1px solid #404854;border-radius:2px">
+              <div style="display:flex;align-items:center;gap:7px"><span class="mono" style="font-size:10px;color:#5F6B7C">05</span><span class="lbl" style="color:#8F99A8">Persistence</span></div>
+              <div style="font:500 12.5px var(--ui);color:#F6F7F9;line-height:1.35">HKCU Run key added</div>
+              <div class="mono" style="font-size:10.5px;color:#8F99A8">Sysmon 13 · 11</div>
+              <div style="display:flex;gap:4px;flex-wrap:wrap;padding-top:2px"><span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">T1547.001</span></div>
+              <div style="display:flex;align-items:center;gap:6px;margin-top:auto;padding-top:6px;border-top:1px solid rgba(255,255,255,.07)"><span class="dot" style="background:#FBD065"></span><span class="mono" style="font-size:10px;color:#8ABBFF">EDR-PER-RUNKEY-001</span></div>
+            </div>
+
+            <div style="width:32px;flex:none;display:flex;align-items:center;justify-content:center">
+              <svg width="26" height="10" viewBox="0 0 26 10" fill="none"><path d="M0 5h22M18.5 1.5 22 5l-3.5 3.5" stroke="#5F6B7C" stroke-width="1.3"></path></svg>
+            </div>
+
+            <div style="width:198px;flex:none;display:flex;flex-direction:column;gap:7px;padding:10px;background:#1C2127;border:1px solid #404854;border-radius:2px">
+              <div style="display:flex;align-items:center;gap:7px"><span class="mono" style="font-size:10px;color:#5F6B7C">06</span><span class="lbl" style="color:#8F99A8">Command &amp; control</span></div>
+              <div style="font:500 12.5px var(--ui);color:#F6F7F9;line-height:1.35">60 s HTTPS beacon</div>
+              <div class="mono" style="font-size:10.5px;color:#8F99A8">Sysmon 3 · zeek conn</div>
+              <div style="display:flex;gap:4px;flex-wrap:wrap;padding-top:2px"><span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">T1071.001</span></div>
+              <div style="display:flex;align-items:center;gap:6px;margin-top:auto;padding-top:6px;border-top:1px solid rgba(255,255,255,.07)"><span class="dot" style="background:#EC9A3C"></span><span class="mono" style="font-size:10px;color:#8ABBFF">EDR-C2-BEACON-007</span></div>
+            </div>
+
+            <div style="flex-grow:1"></div>
+          </div>
+
+          <!-- data source coverage strip -->
+          <div style="display:flex;align-items:center;gap:0;padding-top:4px">
+            <div style="width:118px;flex:none" class="lbl">Telemetry needed</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <span class="tag" style="height:19px;background:rgba(35,133,81,.16);color:#72CA9B">Sysmon 1 · process</span>
+              <span class="tag" style="height:19px;background:rgba(35,133,81,.16);color:#72CA9B">Sysmon 3 · network</span>
+              <span class="tag" style="height:19px;background:rgba(35,133,81,.16);color:#72CA9B">Sysmon 7 · module</span>
+              <span class="tag" style="height:19px;background:rgba(35,133,81,.16);color:#72CA9B">Sysmon 8 · 10</span>
+              <span class="tag" style="height:19px;background:rgba(35,133,81,.16);color:#72CA9B">Sysmon 11 · 13</span>
+              <span class="tag" style="height:19px;background:rgba(35,133,81,.16);color:#72CA9B">PowerShell 4104</span>
+              <span class="tag" style="height:19px;background:rgba(35,133,81,.16);color:#72CA9B">Zeek conn · ssl</span>
+              <span class="tag" style="height:19px;background:rgba(236,154,60,.14);color:#F5B871">Sysmon 25 — not in dataset</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

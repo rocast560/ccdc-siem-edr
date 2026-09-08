@@ -1,0 +1,312 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root{
+      --bg:#1C2127; --panel:#252A31; --raised:#2F343C; --well:#111418;
+      --line:#383E47; --fg:#F6F7F9; --fg2:#ABB3BF; --fg3:#8F99A8; --fg4:#738091;
+      --blue:#2D72D2; --blue4:#4C90F0; --blue5:#8ABBFF; --green5:#72CA9B; --violet:#BDADFF;
+      --ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+      --mono:"SFMono-Regular","Cascadia Mono",Consolas,"Liberation Mono",monospace;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--fg);font:400 13px/1.3 var(--ui);-webkit-font-smoothing:antialiased}
+    a{color:var(--blue5);text-decoration:none}
+    a:hover{color:#AECBFA;text-decoration:underline}
+    .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+    .lbl{font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--fg4)}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:2px}
+    .ph{height:30px;display:flex;align-items:center;gap:8px;padding:0 10px;border-bottom:1px solid var(--line);flex:none}
+    .btn{height:24px;display:inline-flex;align-items:center;gap:6px;padding:0 10px;border-radius:2px;background:#383E47;color:var(--fg);border:none;font:500 12px var(--ui);white-space:nowrap}
+    .btn-primary{background:var(--blue);color:#fff}
+    .btn-min{background:transparent;color:var(--fg2)}
+    .btn-danger{background:transparent;color:#FA999C;box-shadow:inset 0 0 0 1px rgba(205,66,70,.5)}
+    .tag{display:inline-flex;align-items:center;height:16px;padding:0 5px;border-radius:2px;font:600 10px/1 var(--mono);letter-spacing:.02em}
+    .sev{display:inline-flex;align-items:center;height:16px;padding:0 6px;border-radius:2px;font:700 9px/1 var(--ui);letter-spacing:.08em;text-transform:uppercase;color:#111418}
+    .dot{width:7px;height:7px;border-radius:1px;flex:none}
+    .sw-row{display:flex;align-items:center;gap:10px;height:26px}
+    .sw-chip{width:40px;height:20px;border-radius:2px;flex:none}
+    .sw-name{font-size:11.5px;color:#C5CBD3;flex-grow:1}
+    .sw-hex{font-family:var(--mono);font-size:10.5px;color:#738091}
+    .inp{height:26px;display:flex;align-items:center;padding:0 8px;background:#111418;border-radius:2px;box-shadow:inset 0 0 0 1px #404854;font:400 12px var(--mono);color:#F6F7F9}
+    .selbox{height:26px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 8px;background:#383E47;border-radius:2px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);font:400 12px var(--ui);color:#F6F7F9}
+    .sw{width:26px;height:14px;border-radius:7px;flex:none;position:relative;background:#404854}
+    .sw-on{background:#2D72D2}
+    .knob{position:absolute;top:2px;width:10px;height:10px;border-radius:50%;background:#fff}
+    .spec{display:flex;align-items:baseline;gap:14px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+    .spec-meta{font-family:var(--mono);font-size:10px;color:#5F6B7C;flex:none;width:150px}
+  </style>
+</helmet>
+
+<div style="width:1600px;height:1180px;display:flex;flex-direction:column;background:#1C2127;overflow:hidden">
+
+  <!-- HEADER -->
+  <div style="flex:none;padding:20px 24px 16px;border-bottom:1px solid #383E47;background:#252A31;display:flex;align-items:flex-end;gap:20px">
+    <div style="display:flex;align-items:center;gap:11px">
+      <svg width="26" height="26" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M10 1.5 17.5 5.5v6.2c0 3.1-3 5.7-7.5 6.8-4.5-1.1-7.5-3.7-7.5-6.8V5.5L10 1.5Z" stroke="#4C90F0" stroke-width="1.4" fill="rgba(45,114,210,.16)"></path>
+        <path d="M6.6 9.9 9.1 12.4 13.6 7.6" stroke="#8ABBFF" stroke-width="1.6" stroke-linecap="square"></path>
+      </svg>
+      <div>
+        <div style="font:500 20px var(--ui);color:#FFFFFF;letter-spacing:-.01em">CCDC·EDR — interface system</div>
+        <div style="font-size:12px;color:#8F99A8;padding-top:3px">Dense dark SOC console. Tokens from Blueprint's open-source dark theme; no proprietary product UI is reproduced.</div>
+      </div>
+    </div>
+    <div style="flex-grow:1"></div>
+    <div style="display:flex;gap:0;border:1px solid #383E47;border-radius:2px">
+      <div style="padding:7px 13px;border-right:1px solid #383E47"><div class="lbl">Base unit</div><div class="mono" style="font-size:15px;color:#F6F7F9;padding-top:3px">4 px</div></div>
+      <div style="padding:7px 13px;border-right:1px solid #383E47"><div class="lbl">Radius</div><div class="mono" style="font-size:15px;color:#F6F7F9;padding-top:3px">2 px</div></div>
+      <div style="padding:7px 13px;border-right:1px solid #383E47"><div class="lbl">Control</div><div class="mono" style="font-size:15px;color:#F6F7F9;padding-top:3px">24 / 26 px</div></div>
+      <div style="padding:7px 13px"><div class="lbl">Table row</div><div class="mono" style="font-size:15px;color:#F6F7F9;padding-top:3px">26 px</div></div>
+    </div>
+  </div>
+
+  <!-- GRID -->
+  <div style="flex-grow:1;display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:20px;padding:20px 24px;min-height:0">
+
+    <!-- COLUMN 1 -->
+    <div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+
+      <div class="panel" style="flex:none">
+        <div class="ph"><span class="lbl" style="color:#ABB3BF">Surfaces</span><div style="flex-grow:1"></div><span class="mono" style="font-size:10px;color:#5F6B7C">back → front</span></div>
+        <div style="padding:9px 12px">
+          <div class="sw-row"><span class="sw-chip" style="background:#111418;box-shadow:inset 0 0 0 1px #383E47"></span><span class="sw-name">well · code, inputs, status bar</span><span class="sw-hex">#111418</span></div>
+          <div class="sw-row"><span class="sw-chip" style="background:#1C2127"></span><span class="sw-name">app canvas</span><span class="sw-hex">#1C2127</span></div>
+          <div class="sw-row"><span class="sw-chip" style="background:#252A31"></span><span class="sw-name">panel · navbar · rails</span><span class="sw-hex">#252A31</span></div>
+          <div class="sw-row"><span class="sw-chip" style="background:#2F343C"></span><span class="sw-name">raised · group header, hover</span><span class="sw-hex">#2F343C</span></div>
+          <div class="sw-row"><span class="sw-chip" style="background:#383E47"></span><span class="sw-name">border · default button</span><span class="sw-hex">#383E47</span></div>
+          <div class="sw-row"><span class="sw-chip" style="background:#404854"></span><span class="sw-name">input outline · divider strong</span><span class="sw-hex">#404854</span></div>
+          <div class="sw-row" style="border-top:1px solid rgba(255,255,255,.05);margin-top:4px;padding-top:4px;height:auto"><span style="font-size:11px;line-height:1.5;color:#738091">Selection is <span class="mono" style="color:#8ABBFF">rgba(45,114,210,.18)</span> plus a 2–3 px <span class="mono" style="color:#8ABBFF">#4C90F0</span> left rail. Elevation is a hairline, never a soft shadow — one <span class="mono">0 1px 1px rgba(17,20,24,.4)</span> under the navbar only.</span></div>
+        </div>
+      </div>
+
+      <div class="panel" style="flex:none">
+        <div class="ph"><span class="lbl" style="color:#ABB3BF">Text</span></div>
+        <div style="padding:9px 12px">
+          <div class="sw-row"><span class="sw-chip" style="background:#FFFFFF"></span><span class="sw-name" style="color:#FFFFFF">heading · selected row</span><span class="sw-hex">#FFFFFF</span></div>
+          <div class="sw-row"><span class="sw-chip" style="background:#F6F7F9"></span><span class="sw-name" style="color:#F6F7F9">primary body</span><span class="sw-hex">#F6F7F9</span></div>
+          <div class="sw-row"><span class="sw-chip" style="background:#C5CBD3"></span><span class="sw-name" style="color:#C5CBD3">table data</span><span class="sw-hex">#C5CBD3</span></div>
+          <div class="sw-row"><span class="sw-chip" style="background:#ABB3BF"></span><span class="sw-name" style="color:#ABB3BF">secondary · inactive tab</span><span class="sw-hex">#ABB3BF</span></div>
+          <div class="sw-row"><span class="sw-chip" style="background:#8F99A8"></span><span class="sw-name" style="color:#8F99A8">muted · field names</span><span class="sw-hex">#8F99A8</span></div>
+          <div class="sw-row"><span class="sw-chip" style="background:#738091"></span><span class="sw-name" style="color:#738091">label caps · timestamps</span><span class="sw-hex">#738091</span></div>
+          <div class="sw-row"><span class="sw-chip" style="background:#5F6B7C"></span><span class="sw-name" style="color:#5F6B7C">faint · axis, hints, counts</span><span class="sw-hex">#5F6B7C</span></div>
+        </div>
+      </div>
+
+      <div class="panel" style="flex-grow:1">
+        <div class="ph"><span class="lbl" style="color:#ABB3BF">Accent &amp; intent</span><div style="flex-grow:1"></div><span class="mono" style="font-size:10px;color:#5F6B7C">fill / on-dark text</span></div>
+        <div style="padding:9px 12px">
+          <div class="sw-row"><span class="sw-chip" style="background:#2D72D2"></span><span class="sw-name">primary action</span><span class="sw-hex">#2D72D2</span></div>
+          <div class="sw-row"><span class="sw-chip" style="background:#4C90F0"></span><span class="sw-name">active indicator · single-series bars</span><span class="sw-hex">#4C90F0</span></div>
+          <div class="sw-row"><span class="sw-chip" style="background:#8ABBFF"></span><span class="sw-name" style="color:#8ABBFF">links · rule IDs · JSON keys</span><span class="sw-hex">#8ABBFF</span></div>
+          <div class="sw-row"><span class="sw-chip" style="background:#72CA9B"></span><span class="sw-name" style="color:#72CA9B">pass · match · string literals</span><span class="sw-hex">#72CA9B</span></div>
+          <div class="sw-row"><span class="sw-chip" style="background:#FA999C"></span><span class="sw-name" style="color:#FA999C">danger text on dark</span><span class="sw-hex">#FA999C</span></div>
+          <div class="sw-row"><span class="sw-chip" style="background:#BDADFF"></span><span class="sw-name" style="color:#BDADFF">ATT&amp;CK identifiers</span><span class="sw-hex">#BDADFF</span></div>
+          <div class="sw-row"><span class="sw-chip" style="background:#FBD065"></span><span class="sw-name" style="color:#FBD065">numeric literals</span><span class="sw-hex">#FBD065</span></div>
+          <div style="padding-top:8px;border-top:1px solid rgba(255,255,255,.05);margin-top:5px">
+            <span style="font-size:11px;line-height:1.5;color:#738091">Violet is reserved for ATT&amp;CK and never used as a status. Text never wears a series colour — a chip beside it carries identity.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMN 2 -->
+    <div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+
+      <div class="panel" style="flex:none">
+        <div class="ph"><span class="lbl" style="color:#ABB3BF">Severity ramp</span><div style="flex-grow:1"></div><span class="tag" style="background:rgba(35,133,81,.18);color:#72CA9B">CVD ΔE 11.4 min</span></div>
+        <div style="padding:10px 12px">
+          <div style="display:flex;gap:2px;padding-bottom:10px">
+            <div style="flex-grow:1;height:30px;background:#CD4246;border-radius:2px 0 0 2px"></div>
+            <div style="flex-grow:1;height:30px;background:#EC9A3C"></div>
+            <div style="flex-grow:1;height:30px;background:#FBD065"></div>
+            <div style="flex-grow:1;height:30px;background:#3FA6DA"></div>
+            <div style="flex-grow:1;height:30px;background:#738091;border-radius:0 2px 2px 0"></div>
+          </div>
+          <div class="sw-row" style="height:22px"><span class="dot" style="background:#CD4246"></span><span class="sw-name">critical</span><span class="sw-hex">#CD4246</span></div>
+          <div class="sw-row" style="height:22px"><span class="dot" style="background:#EC9A3C"></span><span class="sw-name">high</span><span class="sw-hex">#EC9A3C</span></div>
+          <div class="sw-row" style="height:22px"><span class="dot" style="background:#FBD065"></span><span class="sw-name">medium</span><span class="sw-hex">#FBD065</span></div>
+          <div class="sw-row" style="height:22px"><span class="dot" style="background:#3FA6DA"></span><span class="sw-name">low</span><span class="sw-hex">#3FA6DA</span></div>
+          <div class="sw-row" style="height:22px"><span class="dot" style="background:#738091"></span><span class="sw-name">info</span><span class="sw-hex">#738091</span></div>
+          <div style="padding-top:8px;border-top:1px solid rgba(255,255,255,.05);margin-top:5px">
+            <span style="font-size:11px;line-height:1.5;color:#738091">A reserved status ramp — never borrowed for a chart series. Severity always ships with a word or a rule ID beside the swatch, and stacked segments carry a 2 px surface gap so the ordering stays readable without colour.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="flex:none">
+        <div class="ph"><span class="lbl" style="color:#ABB3BF">Typography</span><div style="flex-grow:1"></div><span class="mono" style="font-size:10px;color:#5F6B7C">system UI + mono</span></div>
+        <div style="padding:6px 12px 10px">
+          <div class="spec"><span class="spec-meta">20 / 500 / -.01em</span><span style="font:500 20px var(--ui);color:#FFFFFF;letter-spacing:-.01em">Page title</span></div>
+          <div class="spec"><span class="spec-meta">17 / 500</span><span style="font:500 17px var(--ui);color:#FFFFFF">Alert headline</span></div>
+          <div class="spec"><span class="spec-meta">12.5 / 600</span><span style="font:600 12.5px var(--ui);color:#F6F7F9">Navigation · group header</span></div>
+          <div class="spec"><span class="spec-meta">12.5 / 400 / 1.5</span><span style="font:400 12.5px var(--ui);color:#ABB3BF">Body copy, intel descriptions</span></div>
+          <div class="spec"><span class="spec-meta">10 / 600 / .09em caps</span><span class="lbl" style="color:#738091">Section label</span></div>
+          <div class="spec"><span class="spec-meta">11.5 mono</span><span class="mono" style="font-size:11.5px;color:#C5CBD3">WIN-WKS14 · sysmon 8 · 0x1F3FFF</span></div>
+          <div class="spec" style="border-bottom:none"><span class="spec-meta">30 / 500 mono tabular</span><span class="mono" style="font-size:30px;font-weight:500;line-height:1;color:#F6F7F9">24,318</span></div>
+        </div>
+      </div>
+
+      <div class="panel" style="flex-grow:1">
+        <div class="ph"><span class="lbl" style="color:#ABB3BF">Chart primitives</span></div>
+        <div style="padding:10px 12px;display:flex;flex-direction:column;gap:12px">
+          <div>
+            <div class="lbl" style="padding-bottom:6px">Single series — one hue, value at the data end</div>
+            <svg width="440" height="58" viewBox="0 0 440 58" role="img" aria-label="Horizontal bar primitive with rounded data ends">
+              <g fill="#4C90F0"><rect x="0" y="4" width="300" height="12" rx="3"></rect><rect x="0" y="26" width="196" height="12" rx="3"></rect><rect x="0" y="44" width="104" height="12" rx="3"></rect></g>
+              <g class="mono" font-family="SFMono-Regular, Consolas, monospace" font-size="11" fill="#C5CBD3"><text x="310" y="14">21</text><text x="206" y="36">14</text><text x="114" y="54">7</text></g>
+            </svg>
+          </div>
+          <div>
+            <div class="lbl" style="padding-bottom:6px">Stacked status — 2 px surface gap between segments</div>
+            <svg width="440" height="16" viewBox="0 0 440 16" role="img" aria-label="Stacked severity bar with gaps between segments">
+              <rect x="0" y="2" width="46" height="12" rx="2" fill="#CD4246"></rect>
+              <rect x="48" y="2" width="94" height="12" fill="#EC9A3C"></rect>
+              <rect x="144" y="2" width="130" height="12" fill="#FBD065"></rect>
+              <rect x="276" y="2" width="150" height="12" rx="2" fill="#3FA6DA"></rect>
+            </svg>
+          </div>
+          <div>
+            <div class="lbl" style="padding-bottom:6px">Time series — 2 px line, 20 % fill, recessive grid</div>
+            <svg width="440" height="70" viewBox="0 0 440 70" role="img" aria-label="Area chart primitive over a faint grid">
+              <g stroke="rgba(255,255,255,.06)"><line x1="0" y1="60.5" x2="440" y2="60.5"></line><line x1="0" y1="38.5" x2="440" y2="38.5"></line><line x1="0" y1="16.5" x2="440" y2="16.5"></line></g>
+              <path d="M0,48 L55,42 L110,50 L165,30 L220,38 L275,20 L330,34 L385,26 L440,32 L440,60 L0,60 Z" fill="rgba(45,114,210,.20)"></path>
+              <path d="M0,48 L55,42 L110,50 L165,30 L220,38 L275,20 L330,34 L385,26 L440,32" fill="none" stroke="#4C90F0" stroke-width="2" stroke-linejoin="round"></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMN 3 -->
+    <div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+
+      <div class="panel" style="flex:none">
+        <div class="ph"><span class="lbl" style="color:#ABB3BF">Controls</span><div style="flex-grow:1"></div><span class="mono" style="font-size:10px;color:#5F6B7C">24 px dense · 26 px toolbar</span></div>
+        <div style="padding:11px 12px;display:flex;flex-direction:column;gap:11px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <button class="btn btn-primary">Re-run detections</button>
+            <button class="btn">Import JSON</button>
+            <button class="btn btn-min">Pivot to events</button>
+            <button class="btn btn-danger">Suppress rule</button>
+            <button class="btn" style="opacity:.4">Disabled</button>
+          </div>
+          <div style="display:flex;gap:8px">
+            <div class="inp" style="flex-grow:1">process.cmdline:*-enc*<span style="width:1px;height:13px;background:#8ABBFF;margin-left:1px"></span></div>
+            <div class="selbox" style="width:132px">severity: high
+              <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 3.8 5 6.8 8 3.8" stroke="#ABB3BF" stroke-width="1.4"></path></svg>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px">
+            <span style="display:flex;align-items:center;gap:8px;font-size:12px;color:#F6F7F9"><span class="sw sw-on"><span class="knob" style="right:2px"></span></span>enabled</span>
+            <span style="display:flex;align-items:center;gap:8px;font-size:12px;color:#8F99A8"><span class="sw"><span class="knob" style="left:2px;background:#8F99A8"></span></span>disabled</span>
+            <span style="display:flex;align-items:center;gap:7px;font-size:12px;color:#F6F7F9"><span style="width:12px;height:12px;border-radius:2px;background:#2D72D2;display:flex;align-items:center;justify-content:center"><svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1.4 4.2 3.2 6 6.6 2.2" stroke="#fff" stroke-width="1.5" stroke-linecap="square"></path></svg></span>checked</span>
+            <span style="display:flex;align-items:center;gap:7px;font-size:12px;color:#ABB3BF"><span style="width:12px;height:12px;border-radius:2px;box-shadow:inset 0 0 0 1px #738091"></span>unchecked</span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <div style="display:flex;height:24px;border-radius:2px;overflow:hidden;box-shadow:inset 0 0 0 1px #404854">
+              <span style="display:flex;align-items:center;padding:0 10px;font:500 11.5px var(--ui);background:#383E47;color:#F6F7F9">Open</span>
+              <span style="display:flex;align-items:center;padding:0 10px;font:400 11.5px var(--ui);color:#8F99A8">Reviewed</span>
+              <span style="display:flex;align-items:center;padding:0 10px;font:400 11.5px var(--ui);color:#8F99A8">All</span>
+            </div>
+            <div style="display:flex;align-items:stretch;height:26px">
+              <span style="display:flex;align-items:center;padding:0 11px;font:600 12px var(--ui);color:#FFFFFF;box-shadow:inset 0 -2px 0 #4C90F0">Normalized</span>
+              <span style="display:flex;align-items:center;padding:0 11px;font:400 12px var(--ui);color:#8F99A8">Raw</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="flex:none">
+        <div class="ph"><span class="lbl" style="color:#ABB3BF">Data atoms</span></div>
+        <div style="padding:11px 12px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+            <span class="sev" style="background:#CD4246">Critical</span>
+            <span class="sev" style="background:#EC9A3C">High</span>
+            <span class="sev" style="background:#FBD065">Medium</span>
+            <span class="sev" style="background:#3FA6DA">Low</span>
+            <span class="sev" style="background:#738091">Info</span>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+            <span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">T1055.002</span>
+            <span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">TA0005</span>
+            <span class="tag mono" style="background:rgba(45,114,210,.18);color:#8ABBFF">EDR-C2-HAVOC-003</span>
+            <span class="tag mono" style="background:#2F343C;color:#C5CBD3">WIN-WKS14</span>
+            <span class="tag" style="background:#2F343C;color:#8F99A8">Sysmon 8 · 10</span>
+            <span class="tag" style="background:rgba(236,154,60,.16);color:#F5B871">Havoc</span>
+            <span class="tag" style="background:rgba(35,133,81,.18);color:#72CA9B">SYNTHETIC</span>
+            <span class="tag" style="background:transparent;color:#738091;box-shadow:inset 0 0 0 1px #404854">no rule yet</span>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+            <span class="tag" style="height:19px;background:rgba(45,114,210,.2);color:#8ABBFF;gap:5px;padding:0 4px 0 6px">host: WIN-WKS14
+              <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1.4 1.4 6.6 6.6M6.6 1.4 1.4 6.6" stroke="#8ABBFF" stroke-width="1.3"></path></svg></span>
+            <span style="font-size:11px;color:#5F6B7C">removable filter</span>
+          </div>
+
+          <div style="border:1px solid #383E47;border-radius:2px;overflow:hidden">
+            <div style="display:flex;height:22px;align-items:center;background:#2F343C;border-bottom:1px solid #383E47">
+              <div style="width:22px;flex:none"></div>
+              <div style="width:92px;flex:none;padding:0 8px" class="lbl">Time</div>
+              <div style="width:88px;flex:none;padding:0 8px" class="lbl">Host</div>
+              <div style="flex-grow:1;padding:0 8px" class="lbl">Summary</div>
+            </div>
+            <div style="display:flex;height:26px;align-items:center;border-bottom:1px solid rgba(255,255,255,.045)">
+              <div style="width:22px;flex:none"></div>
+              <div class="mono" style="width:92px;flex:none;padding:0 8px;font-size:11px;color:#8F99A8">13:14:22</div>
+              <div class="mono" style="width:88px;flex:none;padding:0 8px;font-size:11px;color:#C5CBD3">WIN-WKS14</div>
+              <div class="mono" style="flex-grow:1;padding:0 8px;font-size:11px;color:#C5CBD3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">default row</div>
+            </div>
+            <div style="display:flex;height:26px;align-items:center;background:rgba(205,66,70,.07);border-bottom:1px solid rgba(255,255,255,.045)">
+              <div style="width:22px;flex:none;display:flex;justify-content:center"><span class="dot" style="background:#EC9A3C"></span></div>
+              <div class="mono" style="width:92px;flex:none;padding:0 8px;font-size:11px;color:#8F99A8">13:14:41</div>
+              <div class="mono" style="width:88px;flex:none;padding:0 8px;font-size:11px;color:#C5CBD3">WIN-WKS14</div>
+              <div class="mono" style="flex-grow:1;padding:0 8px;font-size:11px;color:#C5CBD3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">row carrying an alert</div>
+            </div>
+            <div style="display:flex;height:26px;align-items:center;background:rgba(45,114,210,.20);box-shadow:inset 2px 0 0 #4C90F0">
+              <div style="width:22px;flex:none;display:flex;justify-content:center"><span class="dot" style="background:#CD4246"></span></div>
+              <div class="mono" style="width:92px;flex:none;padding:0 8px;font-size:11px;color:#C5CBD3">13:15:19</div>
+              <div class="mono" style="width:88px;flex:none;padding:0 8px;font-size:11px;color:#FFFFFF">WIN-WKS14</div>
+              <div class="mono" style="flex-grow:1;padding:0 8px;font-size:11px;color:#FFFFFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">selected row</div>
+            </div>
+          </div>
+
+          <div style="position:relative;display:flex;align-items:center;gap:7px;height:18px">
+            <div style="position:absolute;left:19px;top:0;bottom:0;width:150px;background:rgba(76,144,240,.10);border-radius:1px"></div>
+            <span style="width:12px;height:12px;border-radius:2px;background:#2D72D2;display:flex;align-items:center;justify-content:center;flex:none"><svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1.4 4.2 3.2 6 6.6 2.2" stroke="#fff" stroke-width="1.5" stroke-linecap="square"></path></svg></span>
+            <span class="mono" style="font-size:11px;color:#F6F7F9;position:relative">sysmon</span>
+            <div style="flex-grow:1"></div><span class="mono" style="font-size:10.5px;color:#8F99A8;position:relative">14,220</span>
+          </div>
+          <span style="font-size:11px;color:#5F6B7C;margin-top:-4px">Facet row — the count bar is a proportional underlay, not a separate chart.</span>
+        </div>
+      </div>
+
+      <div class="panel" style="flex-grow:1;display:flex;flex-direction:column">
+        <div class="ph"><span class="lbl" style="color:#ABB3BF">Density &amp; rhythm</span></div>
+        <div style="padding:11px 12px;display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;gap:10px;align-items:baseline"><span class="mono" style="width:74px;flex:none;font-size:11px;color:#8ABBFF">50 px</span><span style="font-size:11.5px;color:#ABB3BF">navbar — brand, tabs, global time range</span></div>
+          <div style="display:flex;gap:10px;align-items:baseline"><span class="mono" style="width:74px;flex:none;font-size:11px;color:#8ABBFF">40 px</span><span style="font-size:11.5px;color:#ABB3BF">context toolbar — per-tab controls only</span></div>
+          <div style="display:flex;gap:10px;align-items:baseline"><span class="mono" style="width:74px;flex:none;font-size:11px;color:#8ABBFF">30 px</span><span style="font-size:11.5px;color:#ABB3BF">panel header — label left, metadata right</span></div>
+          <div style="display:flex;gap:10px;align-items:baseline"><span class="mono" style="width:74px;flex:none;font-size:11px;color:#8ABBFF">26 px</span><span style="font-size:11.5px;color:#ABB3BF">table row · virtualized, fixed height</span></div>
+          <div style="display:flex;gap:10px;align-items:baseline"><span class="mono" style="width:74px;flex:none;font-size:11px;color:#8ABBFF">12 px</span><span style="font-size:11.5px;color:#ABB3BF">gap between panels · 20 px on reference sheets</span></div>
+          <div style="display:flex;gap:10px;align-items:baseline"><span class="mono" style="width:74px;flex:none;font-size:11px;color:#8ABBFF">26 px</span><span style="font-size:11.5px;color:#ABB3BF">status bar — dataset, rule count, offline badge</span></div>
+          <div style="padding-top:8px;margin-top:2px;border-top:1px solid rgba(255,255,255,.05)">
+            <span style="font-size:11px;line-height:1.55;color:#738091">Every screen is navbar → context toolbar → work area → status bar. The work area is at most three regions: a filter or list rail, the primary table or canvas, and a detail pane. Nothing floats; panels butt against hairlines.</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(45,114,210,.07);border-left:2px solid #4C90F0;border-radius:0 2px 2px 0">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#4C90F0" stroke-width="1.3"></circle><path d="M7 6.2v4M7 4.1v.9" stroke="#4C90F0" stroke-width="1.5" stroke-linecap="round"></path></svg>
+            <span style="font-size:11.5px;color:#C5CBD3">Callout — used for dataset provenance and scope notes, never for decoration.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
