@@ -2,9 +2,19 @@
 _probe.txt
 _probe.html
 
+# edr runtime artifacts (recreated on launch: baseline, bookmarks, kernel trace)
+edr/state/
+
+# python
+__pycache__/
+*.pyc
+
 # os / editor
 Thumbs.db
 desktop.ini
 .DS_Store
 .vscode/
 .idea/
+
+# runtime logs
+*.log
