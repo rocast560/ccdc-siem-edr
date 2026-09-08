@@ -42,6 +42,20 @@ RULES = [
          strings=[b"Demon", b"Havoc", b"HellsGate", b"SleepObf", b"demon.x64.dll", b"\\\\Havoc\\"],
          require=2, magic=PE_MAGIC,
          why="Static indicators of the Havoc Demon agent or its loaders."),
+    dict(id="SIG-WATERSHELL", name="Watershell raw-packet shell (RITRedteam)", severity="critical",
+         strings=[b"status:", b"run:", b"/proc/net/arp", b"/proc/net/route",
+                  b"Running in promisc mode", b"TCP mode (experimental)", b"00000000"],
+         require=3, magic=ELF_MAGIC,
+         why="Watershell (watershell-cpp) receives commands as raw Ethernet/IP frames on a "
+             "BPF-filtered PF_PACKET socket (no listening port) and matches packet payloads "
+             "against the 'status:'/'run:' magic prefixes while parsing /proc/net/arp and "
+             "/proc/net/route to hand-craft L2 replies. These traits are its binary fingerprint."),
+    dict(id="SIG-DOTNET-OFFTOOL", name="Offensive .NET tool assembly name", severity="critical",
+         strings=[b"Rubeus", b"Seatbelt", b"SharpHound", b"SharpSploit", b"winPEAS",
+                  b"Covenant.Launcher", b"GhostPack", b"SharpDPAPI", b"SharpRoast", b"SharpWMI"],
+         require=1, magic=None,
+         why="Assembly/file name matches known offensive .NET post-exploitation tooling "
+             "(file-less loads carry these names into .NET Loader ETW events)."),
 ]
 
 USER_WRITABLE_DIRS = [
@@ -57,16 +71,15 @@ MAX_READ = 8 * 1024 * 1024
 
 _scanned = {}   # path -> (size, mtime, verdict)
 
-def scan_bytes(data):
+def scan_bytes(data, memory=False):
+    """Match signature rules. memory=True skips the PE/ELF magic requirement -
+    memory chunks never begin with a file header."""
     hits = []
     for r in RULES:
-        if r["magic"] and not data.startswith(tuple(m for m in (r["magic"],) if m)):
-            # magic entry holds concatenated magics; test both
+        if r["magic"] and not memory:
             if not (data.startswith(PE_MAGIC) and PE_MAGIC in r["magic"]) and \
                not (data.startswith(ELF_MAGIC) and ELF_MAGIC in r["magic"]):
                 continue
-        if r.get("exts") is not None and not r.get("exts"):
-            pass
         n = sum(1 for s in r["strings"] if s in data)
         if n >= r["require"]:
             hits.append(r)

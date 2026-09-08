@@ -172,3 +172,86 @@ wiring's content-replacement is now idempotent (re-asserted every refresh
 cycle via `data-live-body` marker), so the static sample markup can never
 co-render with live data regardless of load order. Also filtered netstat's
 `0.0.0.0`/`[::]` pseudo-peers out of beacon analysis. Suite re-run: 11/11.
+
+---
+
+## Addendum 4 — gap closure: advanced persistence, evasion, and watershell
+
+Implements every gap from the coverage review, plus detection for
+[RITRedteam/watershell-cpp](https://github.com/RITRedteam/watershell-cpp). Suite: **21/21.**
+
+### Persistence (edr/persistence.py)
+- **COM hijacks** — HKCU `CLSID\{...}\InprocServer32` shadows pointing outside system dirs (`PERS-COM`)
+- **.NET CLR hijacks** — `COR_ENABLE_PROFILING`/`COR_PROFILER` in system or user Environment (`PERS-CLR`)
+- **LSA package tamper** — non-standard `Security Packages`/`Notification Packages` (`PERS-LSA`)
+- **Scheduled-task *action* diffs** — per-task action hashes, so editing an existing benign task's action alerts (`PERS-TASKMOD`), not just new tasks
+- **WMI subscriptions** now include `__TimerInstruction`, and `CommandLineEventConsumer` payloads are rule-evaluated as process command lines
+- **DLL side-load candidates** — DLLs written into Program Files after baseline (`PERS-SIDELOAD`)
+
+### Evasion / credential access
+- **.NET ETW loader** (`edr/dotnet.py`) — a `Microsoft-Windows-DotNETRuntime` (Loader keyword) trace session, dumped via tracerpt each cycle; assembly names are screened against the `SIG-DOTNET-OFFTOOL` pack (Rubeus, Seatbelt, SharpHound, GhostPack…). This sees `Assembly.Load(byte[])` that never touches disk.
+- **LSASS handle sweep** (`edr/lsass.py`) — `NtQuerySystemInformation(SystemExtendedHandleInformation)` via ctypes; entries are pre-filtered by dynamically-discovered Process `ObjectTypeIndex`, then VM_READ/DUP handles are duplicated to identify LSASS targets (`LSASS-HANDLE`). Two hard-won fixes documented in code: x64 handles need explicit `c_void_p` restypes (default c_int truncates), and duplication must request `PROCESS_QUERY_LIMITED_INFORMATION` rather than copy the original's VM_READ-only access.
+- **DNS beacons** (`edr/dnsbeacon.py`) — DNS Client operational channel (3006/3008) fed through the same jitter-tolerant periodicity analysis, keyed on (pid, registered domain) so round-robin subdomains don't defeat it (`DNS-BEACON`).
+- **Kerberoasting** — Security 4769 with RC4 (0x17) ticket encryption (`KRB-ROAST`).
+- **Instant-exit commands** — eventlog-fed twins of the hive-dump/log-clear/auditpol rules (4688 sees sub-second processes the 3s WMI poll misses); regexes tolerate quoted image paths.
+- **Sensor watchdog** — separate thread raises `SENSOR-WATCHDOG` if the sensor loop stalls >60s (killed/blinded sensors).
+
+### watershell-cpp
+Raw `PF_PACKET` reverse shell: commands arrive as raw Ethernet frames through a BPF filter
+(no listening port — invisible to netstat/ss), payloads matched against `status:`/`run:` magic
+prefixes, replies hand-crafted at layer 2; reads `/proc/net/arp` + `/proc/net/route` for the
+gateway MAC. Two detection layers:
+- `SIG-WATERSHELL` byte signature over those binary traits (ELF)
+- `edr/linux_sensor.py` — maps `/proc/net/packet` inodes to owning pids and alerts on any
+  non-capture tool holding a raw packet socket (`PKT-SOCKET`); activates automatically when
+  the EDR runs on a Linux host
+
+### Verification additions (tests/run_tests.py, all benign)
+COM hijack plant, CLR env plant, task-action modification, Program Files DLL drop,
+pattern-only `reg save`/`wevtutil cl` invocations (nonexistent targets — no data written),
+LSASS VM_READ handle held by a child process, `Assembly.LoadFrom` of a hello-world named
+Seatbelt.exe, periodic `Resolve-DnsName` loop, fake watershell ELF. Final run: 21/21 PASS.
+
+---
+
+## Addendum 5 — remaining backlog items closed
+
+All four open backlog items implemented and verified. Suite: **21/21 classic
+(`EDR_TESTS=classic`) + 4/4 tranche-3 (`python tests/run_tranche3.py`) = 25/25.**
+
+### ICMP transport (`edr/icmp.py`)
+Kernel ICMP counters (`netstat -s`, Echos/Echo Replies) run through the same
+jitter-tolerant cadence analysis; near-constant counter growth = `ICMP-BEACON`
+(high — peer attribution needs the kernel ETW trace, documented backlog).
+Verified with a 5s loopback ping loop.
+
+### tcp_bind listener detection (`network.check_listeners`)
+Any LISTENING socket on a non-standard port whose owning image is not a
+service path → `NET-LISTENER` (the imix inverted-transport posture and the
+netcat-backdoor pattern). Verified with a TEMP-path binary listening on 44444.
+
+### Process memory scanning (`edr/memscan.py`)
+VirtualQueryEx + ReadProcessMemory walk of committed regions for every
+non-system process, newest-first, against the same signature packs in
+`memory=True` mode (no PE/ELF magic requirement — memory chunks never begin
+with a file header). imix carries its config surface in mapped memory, so a
+running implant is findable even where the file scanner can't reach.
+Budgeted (4 processes / 8 MB per 60s pass) to keep the sensor loop healthy —
+the watchdog verifies it. Verified with a `/k cmd` carrying the marker in its
+process-parameters block (the same RW region a real implant's config lives in).
+
+### Config extraction automation (`responder.extract_config`)
+Quarantine now pulls embedded C2 indicators (callback URIs, hosts) from the
+vaulted file and **auto-blocks extracted peers at the firewall**; indicators
+and blocked peers land in the `RESP-QUAR` alert so egress containment is
+one click. Verified: `IMIX_CALLBACK_URI=http://203.0.113.99:8443/tavern` →
+indicator extracted, 203.0.113.99 auto-blocked. Same-content re-quarantine is
+uniquified (deny-ACL'd vault entries no longer block the move).
+
+### Ops notes from this round
+- The background-process wrapper can report "failed" while a detached python
+  keeps serving port 8420 — stale instances then serve old code. Always kill
+  by command line (`Get-CimInstance Win32_Process | ? CommandLine -match edr`)
+  before relaunching.
+- ctypes lesson twice over: `c_void_p` fields/returns are `None`/truncated at
+  address 0 — coerce before arithmetic, and set 64-bit restypes explicitly.
