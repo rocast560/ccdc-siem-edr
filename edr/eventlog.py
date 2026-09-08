@@ -17,10 +17,11 @@ from . import state, rules
 BOOKMARK = os.path.join(os.path.dirname(__file__), "state", "eventlog-bookmark.json") if (os := __import__("os")) else None
 
 CHANNELS = [
-    ("Security", "*[System[(EventID=4688 or EventID=4698 or EventID=4702 or EventID=4720 or EventID=1102 or EventID=4732)]]"),
+    ("Security", "*[System[(EventID=4688 or EventID=4698 or EventID=4702 or EventID=4720 or EventID=1102 or EventID=4732 or EventID=4769)]]"),
     ("System", "*[System[(EventID=7045 or EventID=7040)]]"),
     ("Windows PowerShell", "*[System[EventID=4104]]"),
     ("Microsoft-Windows-PowerShell/Operational", "*[System[EventID=4104]]"),
+    ("Microsoft-Windows-DNS-Client/Operational", "*[System[(EventID=3006 or EventID=3008)]]"),
     ("Microsoft-Windows-Sysmon/Operational", "*"),
 ]
 
@@ -48,7 +49,7 @@ def _save_bookmarks():
         pass
 
 def _render(channel, xpath, bookmark=None):
-    cmd = ["wevtutil", "qe", channel, "/q:" + xpath, "/c:200", "/rd:true", "/e:Events", "/f:xml"]
+    cmd = ["wevtutil", "qe", channel, "/q:" + xpath, "/c:2000", "/rd:true", "/e:Events", "/f:xml"]
     # note: /bm: needs a bookmark FILE; we instead track the last seen
     # EventRecordID ourselves and filter parsed events against it.
     r = subprocess.run(cmd, capture_output=True, text=True, errors="replace", timeout=120)
@@ -99,6 +100,33 @@ def poll_channels():
                                        "PowerShell script block", {"eid": eid, "channel": channel,
                                                                    "cmdline": script})
                 rules.evaluate(rec)
+            elif channel == "Security" and eid == "4769":
+                # Kerberoasting: service ticket requested with RC4 (0x17)
+                tkt = _field(ev, "TicketEncryptionType")
+                svc = _field(ev, "ServiceName")
+                rec = state.norm_event("eventlog", "eventlog",
+                                       "high" if tkt == "0x17" else "info",
+                                       "Kerberos service ticket: " + (svc or "?"),
+                                       {"eid": eid, "channel": channel, "cmdline": svc,
+                                        "path": svc, "enc": tkt})
+                if tkt == "0x17":
+                    state.raise_alert(
+                        "KRB-ROAST", "high", "RC4 service ticket requested: " + (svc or "?"),
+                        "Kerberos TGS request with RC4 encryption (0x17) - the Kerberoasting "
+                        "signature (Rubeus / GetUserSPNs request crackable RC4 tickets for "
+                        "offline password attacks). Service: " + (svc or "?"),
+                        event=rec, data={"service": svc})
+                rules.evaluate(rec)
+            elif channel.endswith("DNS-Client/Operational"):
+                qname = _field(ev, "QueryName")
+                pid = _field(ev, "ProcessID") or _field(ev, "Pid") or "0"
+                if qname:
+                    try:
+                        from . import dnsbeacon
+                        v = int(pid, 16) if pid.lower().startswith("0x") else int(pid)
+                        dnsbeacon.note_query(v, qname)
+                    except (ValueError, ImportError):
+                        pass
             elif channel == "Security" and eid == "4688":
                 cmdline = _field(ev, "CommandLine")
                 newproc = _field(ev, "NewProcessName")
@@ -159,6 +187,12 @@ def enable_audit_sources():
         results["cmdline_in_4688"] = True
     except Exception as e:
         results["cmdline_in_4688"] = str(e)
+    try:
+        subprocess.run(["wevtutil", "sl", "Microsoft-Windows-DNS-Client/Operational",
+                        "/e:true"], capture_output=True, timeout=30)
+        results["dns_client_channel"] = True
+    except Exception as e:
+        results["dns_client_channel"] = str(e)
     return results
 
 def try_kernel_trace():

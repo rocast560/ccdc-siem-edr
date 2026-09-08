@@ -15,6 +15,30 @@ from . import state
 QUARANTINE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "state", "quarantine")
 QUARANTINE_MANIFEST = os.path.join(QUARANTINE, "manifest.json")
 
+# implant config surface: compiled-in callback URIs / C2 hosts worth auto-blocking
+CONFIG_RX = re.compile(
+    rb"(?:(?:https?|grpc|quic|dns|icmp|tcp)://[A-Za-z0-9._%-]+(?:Port=[0-9]+)?[^\x00\s\"']{0,32}"
+    rb"|IMIX_CALLBACK_URI[=:][^\x00\r\n]{4,200}"
+    rb"|[A-Za-z0-9._-]+\.(?:cloud|net|com|io|xyz|top|ru|cn)(?::\d{1,5})?)")
+
+def extract_config(path):
+    """Pull embedded C2 indicators (callback URIs, hosts) out of a file."""
+    try:
+        with open(path, "rb") as f:
+            data = f.read(8 * 1024 * 1024)
+    except OSError:
+        return []
+    out = []
+    for m in CONFIG_RX.finditer(data):
+        s = m.group(0)[:200]
+        try:
+            txt = s.decode("utf-8", "replace")
+        except Exception:
+            continue
+        if txt not in out:
+            out.append(txt)
+    return out[:12]
+
 CRITICAL_NAMES = {
     "smss.exe", "csrss.exe", "wininit.exe", "winlogon.exe", "services.exe", "lsass.exe",
     "svchost.exe", "explorer.exe", "dwm.exe", "fontdrvhost.exe", "sihost.exe",
@@ -85,7 +109,18 @@ def quarantine_file(path):
         with open(path, "rb") as f:
             sha = hashlib.sha256(f.read(1024 * 1024)).hexdigest()[:16]
         dest = os.path.join(QUARANTINE, sha + "__" + os.path.basename(path))
-        shutil.move(path, dest)
+        n = 1
+        while os.path.exists(dest):      # same-content re-quarantine: pick a free name
+            dest = os.path.join(QUARANTINE, sha + "-%d__" % n + os.path.basename(path))
+            n += 1
+        for attempt in range(3):          # our own scanner may hold the file mid-read
+            try:
+                shutil.move(path, dest)
+                break
+            except PermissionError:
+                if attempt == 2:
+                    raise
+                time.sleep(1.0)
     except Exception as e:
         _log("quarantine", False, f"move failed {path}: {e}"); return False, "move failed"
     # strip execute from the vaulted copy
@@ -105,11 +140,23 @@ def quarantine_file(path):
             json.dump(man, f, indent=1)
     except Exception:
         pass
-    _log("quarantine", True, f"{path} -> {dest}")
+    # config extraction: pull compiled-in callback URIs and auto-block egress
+    config = extract_config(dest)
+    blocked = []
+    for ind in config:
+        host = re.search(r"[a-z]+://([^/:]+)", ind) or re.match(r"([0-9a-f.:]+(?::\d+)?)", ind)
+        peer = host.group(1).strip(":.") if host else None
+        if peer and IP_RX.match(peer.split(":")[0]):
+            okb, _ = block_ip(peer.split(":")[0])
+            if okb:
+                blocked.append(peer.split(":")[0])
+    _log("quarantine", True, f"{path} -> {dest}" +
+         (f" | config extracted, blocked {blocked}" if blocked else ""))
     state.raise_alert("RESP-QUAR", "high", f"Response: quarantined {os.path.basename(path)}",
                       "Analyst-initiated quarantine: file moved to the EDR vault with execute "
                       "rights denied; origin recorded in the quarantine manifest for restore.",
-                      data={"path": path, "vault": dest, "sha16": sha})
+                      data={"path": path, "vault": dest, "sha16": sha,
+                            "config_indicators": config, "auto_blocked_peers": blocked})
     return True, dest
 
 def block_ip(peer):

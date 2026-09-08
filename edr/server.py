@@ -7,7 +7,8 @@ import json, os, threading, time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
-from . import state, rules, signatures, persistence, processes, eventlog, network, responder
+from . import (state, rules, signatures, persistence, processes, eventlog, network,
+               responder, lsass, dotnet, dnsbeacon, linux_sensor, icmp, memscan)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -19,11 +20,18 @@ PORT = 8420
 
 def sensor_loop(stop: threading.Event):
     state.stats["sources"] = ["wmi-process-poll", "windows-eventlog", "persistence-auditor",
-                              "signature-scanner", "netstat-flows+beacon-cadence"]
+                              "signature-scanner", "netstat-flows+beacon-cadence",
+                              "dotnet-etw-loader", "lsass-handle-sweep", "dns-client-beacons",
+                              "linux-packet-sockets", "icmp-cadence", "process-memory-scan"]
+    state.stats["last_cycle"] = time.time()
     eventlog.enable_audit_sources()
     eventlog.try_kernel_trace()
+    dotnet_ok = dotnet.start()
+    state.norm_event("sensor", "audit", "info", ".NET ETW loader session " +
+                     ("started" if dotnet_ok else "unavailable"), {})
     persistence.take_baseline()
-    t_proc = t_evt = t_net = t_audit = t_scan = 0
+    t_proc = t_evt = t_net = t_audit = t_scan = t_lsass = t_dotnet = t_dns = t_linux = 0
+    t_icmp = t_mem = 0
     while not stop.is_set():
         now = time.time()
         try:
@@ -33,13 +41,37 @@ def sensor_loop(stop: threading.Event):
                 eventlog.poll_channels(); t_evt = now
             if now - t_net >= 5:
                 network.poll_once(); t_net = now
+            if now - t_dns >= 10:
+                dnsbeacon.detect(); t_dns = now
+            if now - t_icmp >= 10:
+                icmp.poll(); t_icmp = now
+            if now - t_mem >= 60:
+                memscan.scan_all(); t_mem = now
+            if now - t_lsass >= 30:
+                lsass.sweep(); t_lsass = now
+            if now - t_dotnet >= 60:
+                dotnet.poll(); t_dotnet = now
+            if now - t_linux >= 10:
+                linux_sensor.poll(); t_linux = now
             if now - t_audit >= 30:
                 persistence.audit_cycle(); t_audit = now
             if now - t_scan >= 60:
                 signatures.scan_dirs(); t_scan = now
+            state.stats["last_cycle"] = now
         except Exception as e:
             state.norm_event("sensor", "audit", "low", "Sensor cycle error", {"error": str(e)})
         stop.wait(1.0)
+
+def watchdog(stop: threading.Event):
+    """Alert if the sensor loop stalls (killed/blinded sensors)."""
+    while not stop.is_set():
+        time.sleep(15)
+        last = state.stats.get("last_cycle", 0)
+        if last and time.time() - last > 60:
+            state.raise_alert("SENSOR-WATCHDOG", "critical", "Sensor loop stalled",
+                              "The EDR sensor loop has not completed a cycle in over 60 seconds. "
+                              "Sensors may have been killed or suspended - an EDR-tamper signal.",
+                              data={"last_cycle_age_s": round(time.time() - last, 1)})
 
 # ---------------------------------------------------------------- http
 
@@ -138,8 +170,8 @@ class Handler(BaseHTTPRequestHandler):
 
 def main():
     stop = threading.Event()
-    t = threading.Thread(target=sensor_loop, args=(stop,), daemon=True)
-    t.start()
+    threading.Thread(target=sensor_loop, args=(stop,), daemon=True).start()
+    threading.Thread(target=watchdog, args=(stop,), daemon=True).start()
     # On Windows SO_REUSEADDR would silently double-bind the port, leaving a
     # stale instance serving old code; refuse the overlap instead.
     ThreadingHTTPServer.allow_reuse_address = False

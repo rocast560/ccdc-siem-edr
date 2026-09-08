@@ -36,10 +36,41 @@ RULES = [
              "is the signature of macro execution or a spooler-context implant."),
     dict(id="PROG-IMPLANT-LAUNCH", name="Signature hit on launched process image", severity="critical", kind="process",
          field="sig", re=r".", why="Process launched from an image whose bytes matched an implant signature rule."),
+    dict(id="PROC-SCRIPTHOST", name="Script-host launcher invocation", severity="high", kind="process",
+         field="cmdline", re=r"(?i)(mshta(\.exe)?\s+\S+:|wscript(\.exe)?\"?\s+\"?\S+\.(vbs|js)|"
+                             r"cscript(\.exe)?\"?\s+\"?\S+\.(vbs|js)|wmic(\.exe)?\s+.*/format:\"?http|"
+                             r"installutil(\.exe)?.*\\Users\\.)",
+         why="Signed script interpreters launching remote or user-profile script content - "
+             "common stager/persistence launch path (mshta/wscript/cscript/wmic, InstallUtil)."),
+    dict(id="EVT-SCRIPTHOST", name="Script-host launcher invocation (4688)", severity="high", kind="eventlog",
+         field="cmdline", re=r"(?i)(mshta(\.exe)?\s+\S+:|wscript(\.exe)?\"?\s+\"?\S+\.(vbs|js)|"
+                             r"cscript(\.exe)?\"?\s+\"?\S+\.(vbs|js)|wmic(\.exe)?\s+.*/format:\"?http)",
+         why="Kernel-fed 4688: script host launching remote/user-profile script content, "
+             "caught even when the host process exits before the WMI poll."),
+    dict(id="PROC-DEFENDER-SIDELOAD", name="Defender binary executing outside install path", severity="critical", kind="process",
+         field="path", re=r"(?i)^((?!\\program files\\windows defender[\\]).)*(mpcmdrun|nissrv|msmpeng)\.exe$",
+         why="MpCmdRun/NisSrv/MsMpEng running from a non-default directory is the canonical "
+             "Defender DLL-sideloading indicator (LockBit/REvil delivery, T1574.002): the signed "
+             "Defender binary is copied to a user-writable folder to load a proxy mpclient.dll/mpsvc.dll."),
+    dict(id="EVT-DEFENDER-SIDELOAD", name="Defender binary launch outside install path (4688)", severity="critical", kind="eventlog",
+         field="path", re=r"(?i)^((?!\\program files\\windows defender[\\]).)*(mpcmdrun|nissrv|msmpeng)\.exe$",
+         why="Kernel-fed 4688: a Defender binary launched from a non-default path - the "
+             "LockBit/REvil sideload posture, caught even when the process exits quickly."),
     dict(id="PROC-MIMIKATZ-CLI", name="Credential-dump tooling command line", severity="critical", kind="process",
          field="cmdline", re=r"(?i)(sekurlsa::logonpasswords|lsadump::sam|procdump.*-ma.*lsass|comsvcs\.dll,MiniDump)",
          why="Command line matches credential-dumping invocation patterns (mimikatz modules, "
              "LSASS minidump via comsvcs or procdump)."),
+    dict(id="PROC-SAM-SAVE", name="Registry hive dump (SAM/SYSTEM/SECURITY)", severity="critical", kind="process",
+         field="cmdline", re=r"(?i)(reg(\.exe)?\s+save\s+HKLM\\(SAM|SYSTEM|SECURITY)|reg\s+save\s+HKLM\\sam|"
+                             r"reg.py.*save|secretsdump|ntdsutil.*\"ac i n t ds\")",
+         why="Extracting the SAM/SYSTEM/SECURITY hives to disk - offline credential extraction "
+             "prerequisite (reg save, Impacket secretsdump, ntdsutil)."),
+    dict(id="PROC-LOG-CLEAR", name="Event log clearing", severity="critical", kind="process",
+         field="cmdline", re=r"(?i)(wevtutil(\.exe)?\"?\s+cl|clear-eventlog|Remove-WinEvent)",
+         why="Clearing Windows event logs - classic anti-forensics during an intrusion."),
+    dict(id="PROC-AUDIT-DISABLE", name="Security auditing disabled", severity="critical", kind="process",
+         field="cmdline", re=r"(?i)auditpol(\.exe)?\"?\s+/set\s+.*(/success:disable|/failure:disable|/clear)",
+         why="Disabling audit policy blinds the kernel-fed event sources this EDR relies on."),
 
     # ---- files ----
     dict(id="FILE-IMPLANT-SIG", name="Implant signature match on file", severity="critical", kind="file",
@@ -70,6 +101,18 @@ RULES = [
          field="path", re=r"(?i)\\appdata\\local\\temp\\|\\users\\public\\|\\windows\\temp\\|\\programdata\\",
          why="Kernel-fed Security audit (4688): executable launched from a directory any "
              "process can write to - the standard drop zone for staged implants."),
+    # eventlog-fed duplicates of the instant-exit process rules: 4688 sees
+    # sub-second processes the 3s WMI poll can miss entirely
+    dict(id="EVT-SAM-SAVE", name="Registry hive dump (SAM/SYSTEM/SECURITY)", severity="critical", kind="eventlog",
+         field="cmdline", re=r"(?i)(reg(\.exe)?\s+save\s+HKLM\\(SAM|SYSTEM|SECURITY)|secretsdump|ntdsutil.*\"ac i n t ds\")",
+         why="Kernel-fed 4688: extracting SAM/SYSTEM/SECURITY hives - offline credential "
+             "extraction prerequisite."),
+    dict(id="EVT-LOG-CLEAR", name="Event log clearing", severity="critical", kind="eventlog",
+         field="cmdline", re=r"(?i)(wevtutil(\.exe)?\"?\s+cl|clear-eventlog|Remove-WinEvent)",
+         why="Kernel-fed 4688: clearing Windows event logs - anti-forensics."),
+    dict(id="EVT-AUDIT-DISABLE", name="Security auditing disabled", severity="critical", kind="eventlog",
+         field="cmdline", re=r"(?i)auditpol(\.exe)?\"?\s+/set\s+.*(/success:disable|/failure:disable|/clear)",
+         why="Kernel-fed 4688: disabling audit policy to blind kernel-fed detection sources."),
     dict(id="EVT-7045", name="Service installed (event 7045)", severity="critical", kind="eventlog",
          field="eid", re=r"^7045$", why="System event log service-install record."),
     dict(id="EVT-4698", name="Scheduled task created (event 4698)", severity="high", kind="eventlog",
