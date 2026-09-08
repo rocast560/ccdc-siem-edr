@@ -1,0 +1,325 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root{
+      --bg:#1C2127; --panel:#252A31; --raised:#2F343C; --well:#111418;
+      --line:#383E47; --fg:#F6F7F9; --fg2:#ABB3BF; --fg3:#8F99A8; --fg4:#738091;
+      --blue:#2D72D2; --blue4:#4C90F0; --blue5:#8ABBFF; --green5:#72CA9B; --violet:#BDADFF;
+      --ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+      --mono:"SFMono-Regular","Cascadia Mono",Consolas,"Liberation Mono",monospace;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--fg);font:400 13px/1.3 var(--ui);-webkit-font-smoothing:antialiased}
+    a{color:var(--blue5);text-decoration:none}
+    a:hover{color:#AECBFA;text-decoration:underline}
+    .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+    .lbl{font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--fg4)}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:2px}
+    .ph{height:30px;display:flex;align-items:center;gap:8px;padding:0 10px;border-bottom:1px solid var(--line);flex:none}
+    .btn{height:24px;display:inline-flex;align-items:center;gap:6px;padding:0 10px;border-radius:2px;background:#383E47;color:var(--fg);border:none;font:500 12px var(--ui);white-space:nowrap}
+    .btn-primary{background:var(--blue);color:#fff}
+    .btn-min{background:transparent;color:var(--fg2)}
+    .tag{display:inline-flex;align-items:center;height:16px;padding:0 5px;border-radius:2px;font:600 10px/1 var(--mono);letter-spacing:.02em}
+    .dot{width:7px;height:7px;border-radius:1px;flex:none}
+    .inp{height:26px;display:flex;align-items:center;padding:0 8px;background:#111418;border-radius:2px;box-shadow:inset 0 0 0 1px #404854;font:400 12px var(--mono);color:#F6F7F9}
+    .selbox{height:26px;display:flex;align-items:center;justify-content:space-between;padding:0 8px;background:#383E47;border-radius:2px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);font:400 12px var(--ui);color:#F6F7F9}
+    .sw{width:26px;height:14px;border-radius:7px;flex:none;position:relative;background:#404854}
+    .sw-on{background:#2D72D2}
+    .knob{position:absolute;top:2px;width:10px;height:10px;border-radius:50%;background:#fff}
+    .frow{display:flex;flex-direction:column;gap:4px}
+  </style>
+</helmet>
+
+<div style="width:1600px;height:1000px;display:flex;flex-direction:column;background:#1C2127;overflow:hidden">
+
+  <!-- NAVBAR -->
+  <div style="height:50px;flex:none;display:flex;align-items:center;padding:0 14px;background:#252A31;border-bottom:1px solid #111418;box-shadow:0 1px 1px rgba(17,20,24,.4)">
+    <div style="display:flex;align-items:center;gap:9px;padding-right:16px">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M10 1.5 17.5 5.5v6.2c0 3.1-3 5.7-7.5 6.8-4.5-1.1-7.5-3.7-7.5-6.8V5.5L10 1.5Z" stroke="#4C90F0" stroke-width="1.4" fill="rgba(45,114,210,.16)"></path>
+        <path d="M6.6 9.9 9.1 12.4 13.6 7.6" stroke="#8ABBFF" stroke-width="1.6" stroke-linecap="square"></path>
+      </svg>
+      <div style="font:600 14px var(--ui);letter-spacing:.02em;color:#F6F7F9">CCDC<span style="color:#5F6B7C">·</span>EDR</div>
+    </div>
+    <div style="width:1px;height:22px;background:#383E47"></div>
+    <div style="display:flex;align-items:stretch;height:50px;margin-left:6px">
+      <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#ABB3BF">Dashboard</div>
+      <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#ABB3BF">Log Explorer</div>
+      <div style="display:flex;align-items:center;gap:6px;padding:0 15px;font:400 12.5px var(--ui);color:#ABB3BF">Alerts <span class="tag" style="background:rgba(205,66,70,.18);color:#FA999C">79</span></div>
+      <div style="display:flex;align-items:center;padding:0 15px;font:600 12.5px var(--ui);color:#FFFFFF;box-shadow:inset 0 -2px 0 #4C90F0">Signatures</div>
+      <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#ABB3BF">Threat Intel</div>
+    </div>
+    <div style="flex-grow:1"></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="mono" style="font-size:11px;color:#738091">41/47 rules</div>
+      <div style="width:1px;height:18px;background:#383E47"></div>
+      <div class="mono" style="font-size:11px;color:#8F99A8">2026-03-14 14:02:07Z</div>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div style="height:40px;flex:none;display:flex;align-items:center;gap:8px;padding:0 14px;background:#1C2127;border-bottom:1px solid #383E47">
+    <div style="display:flex;height:26px;border-radius:2px;overflow:hidden;box-shadow:inset 0 0 0 1px #404854">
+      <span style="display:flex;align-items:center;gap:6px;padding:0 11px;font:600 11.5px var(--ui);background:#383E47;color:#F6F7F9">C2 <span class="mono" style="color:#8F99A8">12</span></span>
+      <span style="display:flex;align-items:center;gap:6px;padding:0 11px;font:400 11.5px var(--ui);color:#ABB3BF">Evasion <span class="mono" style="color:#5F6B7C">14</span></span>
+      <span style="display:flex;align-items:center;gap:6px;padding:0 11px;font:400 11.5px var(--ui);color:#ABB3BF">Persistence <span class="mono" style="color:#5F6B7C">15</span></span>
+      <span style="display:flex;align-items:center;gap:6px;padding:0 11px;font:400 11.5px var(--ui);color:#ABB3BF">Correlation <span class="mono" style="color:#5F6B7C">6</span></span>
+    </div>
+    <div style="width:240px;height:26px;display:flex;align-items:center;gap:7px;padding:0 8px;background:#111418;border-radius:2px;box-shadow:inset 0 0 0 1px #404854">
+      <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4.2" stroke="#738091" stroke-width="1.4"></circle><path d="M9.2 9.2 12 12" stroke="#738091" stroke-width="1.4"></path></svg>
+      <span style="font-size:11.5px;color:#5F6B7C">Filter rules…</span>
+    </div>
+    <div style="flex-grow:1"></div>
+    <button class="btn btn-primary" style="height:26px">
+      <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 1.6v8.8M1.6 6h8.8" stroke="#fff" stroke-width="1.5" stroke-linecap="square"></path></svg>
+      New rule
+    </button>
+    <button class="btn" style="height:26px">Import JSON</button>
+    <button class="btn" style="height:26px">Export pack</button>
+  </div>
+
+  <!-- BODY -->
+  <div style="flex-grow:1;display:flex;min-height:0">
+
+    <!-- RULE LIST -->
+    <div style="width:600px;flex:none;background:#252A31;border-right:1px solid #383E47;display:flex;flex-direction:column;min-height:0">
+      <div style="height:24px;flex:none;display:flex;align-items:center;background:#2F343C;border-bottom:1px solid #383E47">
+        <div style="width:44px;flex:none;padding:0 10px" class="lbl">On</div>
+        <div style="width:172px;flex:none;padding:0 8px" class="lbl">Rule ID</div>
+        <div style="flex-grow:1;padding:0 8px" class="lbl">Name</div>
+        <div style="width:74px;flex:none;padding:0 8px;text-align:right" class="lbl">Fires</div>
+      </div>
+
+      <div style="display:flex;align-items:center;height:32px;border-bottom:1px solid rgba(255,255,255,.045);background:rgba(45,114,210,.18);box-shadow:inset 3px 0 0 #4C90F0">
+        <div style="width:44px;flex:none;padding-left:12px"><span class="sw sw-on"><span class="knob" style="right:2px"></span></span></div>
+        <div style="width:172px;flex:none;padding:0 8px;display:flex;align-items:center;gap:7px"><span class="dot" style="background:#CD4246"></span><span class="mono" style="font-size:11px;color:#FFFFFF">EDR-C2-HAVOC-003</span></div>
+        <div style="flex-grow:1;padding:0 8px;font-size:12px;color:#FFFFFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Havoc Demon — RWX alloc + indirect syscall</div>
+        <div style="width:74px;flex:none;padding:0 12px;text-align:right"><span class="mono" style="font-size:11px;color:#F5B871">2</span></div>
+      </div>
+
+      <div style="display:flex;align-items:center;height:32px;border-bottom:1px solid rgba(255,255,255,.045)">
+        <div style="width:44px;flex:none;padding-left:12px"><span class="sw sw-on"><span class="knob" style="right:2px"></span></span></div>
+        <div style="width:172px;flex:none;padding:0 8px;display:flex;align-items:center;gap:7px"><span class="dot" style="background:#CD4246"></span><span class="mono" style="font-size:11px;color:#C5CBD3">EDR-C2-CS-PIPE-001</span></div>
+        <div style="flex-grow:1;padding:0 8px;font-size:12px;color:#C5CBD3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Cobalt Strike default named pipe (msagent_*, postex_*)</div>
+        <div style="width:74px;flex:none;padding:0 12px;text-align:right"><span class="mono" style="font-size:11px;color:#5F6B7C">0</span></div>
+      </div>
+
+      <div style="display:flex;align-items:center;height:32px;border-bottom:1px solid rgba(255,255,255,.045)">
+        <div style="width:44px;flex:none;padding-left:12px"><span class="sw sw-on"><span class="knob" style="right:2px"></span></span></div>
+        <div style="width:172px;flex:none;padding:0 8px;display:flex;align-items:center;gap:7px"><span class="dot" style="background:#EC9A3C"></span><span class="mono" style="font-size:11px;color:#C5CBD3">EDR-C2-BEACON-007</span></div>
+        <div style="flex-grow:1;padding:0 8px;font-size:12px;color:#C5CBD3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Periodic outbound connection — low jitter heuristic</div>
+        <div style="width:74px;flex:none;padding:0 12px;text-align:right"><span class="mono" style="font-size:11px;color:#F5B871">8</span></div>
+      </div>
+
+      <div style="display:flex;align-items:center;height:32px;border-bottom:1px solid rgba(255,255,255,.045)">
+        <div style="width:44px;flex:none;padding-left:12px"><span class="sw sw-on"><span class="knob" style="right:2px"></span></span></div>
+        <div style="width:172px;flex:none;padding:0 8px;display:flex;align-items:center;gap:7px"><span class="dot" style="background:#EC9A3C"></span><span class="mono" style="font-size:11px;color:#C5CBD3">EDR-C2-MYTHIC-002</span></div>
+        <div style="flex-grow:1;padding:0 8px;font-size:12px;color:#C5CBD3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Mythic HTTP profile — default URI + UUID param</div>
+        <div style="width:74px;flex:none;padding:0 12px;text-align:right"><span class="mono" style="font-size:11px;color:#5F6B7C">0</span></div>
+      </div>
+
+      <div style="display:flex;align-items:center;height:32px;border-bottom:1px solid rgba(255,255,255,.045)">
+        <div style="width:44px;flex:none;padding-left:12px"><span class="sw sw-on"><span class="knob" style="right:2px"></span></span></div>
+        <div style="width:172px;flex:none;padding:0 8px;display:flex;align-items:center;gap:7px"><span class="dot" style="background:#EC9A3C"></span><span class="mono" style="font-size:11px;color:#C5CBD3">EDR-C2-REALM-004</span></div>
+        <div style="flex-grow:1;padding:0 8px;font-size:12px;color:#C5CBD3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Realm/Imix — gRPC callback to Tavern, /graphql endpoint</div>
+        <div style="width:74px;flex:none;padding:0 12px;text-align:right"><span class="mono" style="font-size:11px;color:#5F6B7C">0</span></div>
+      </div>
+
+      <div style="display:flex;align-items:center;height:32px;border-bottom:1px solid rgba(255,255,255,.045);opacity:.55">
+        <div style="width:44px;flex:none;padding-left:12px"><span class="sw"><span class="knob" style="left:2px;background:#8F99A8"></span></span></div>
+        <div style="width:172px;flex:none;padding:0 8px;display:flex;align-items:center;gap:7px"><span class="dot" style="background:#3FA6DA"></span><span class="mono" style="font-size:11px;color:#8F99A8">EDR-C2-JA3-009</span></div>
+        <div style="flex-grow:1;padding:0 8px;font-size:12px;color:#8F99A8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Known-bad JA3 set <span class="mono" style="font-size:10.5px">(disabled — noisy on this dataset)</span></div>
+        <div style="width:74px;flex:none;padding:0 12px;text-align:right"><span class="mono" style="font-size:11px;color:#5F6B7C">—</span></div>
+      </div>
+
+      <div style="display:flex;align-items:center;height:32px;border-bottom:1px solid rgba(255,255,255,.045)">
+        <div style="width:44px;flex:none;padding-left:12px"><span class="sw sw-on"><span class="knob" style="right:2px"></span></span></div>
+        <div style="width:172px;flex:none;padding:0 8px;display:flex;align-items:center;gap:7px"><span class="dot" style="background:#FBD065"></span><span class="mono" style="font-size:11px;color:#C5CBD3">EDR-C2-UA-RARE-011</span></div>
+        <div style="flex-grow:1;padding:0 8px;font-size:12px;color:#C5CBD3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Rare user-agent + high-entropy URI</div>
+        <div style="width:74px;flex:none;padding:0 12px;text-align:right"><span class="mono" style="font-size:11px;color:#FBD065">3</span></div>
+      </div>
+
+      <div style="display:flex;align-items:center;height:32px;border-bottom:1px solid rgba(255,255,255,.045)">
+        <div style="width:44px;flex:none;padding-left:12px"><span class="sw sw-on"><span class="knob" style="right:2px"></span></span></div>
+        <div style="width:172px;flex:none;padding:0 8px;display:flex;align-items:center;gap:7px"><span class="dot" style="background:#FBD065"></span><span class="mono" style="font-size:11px;color:#C5CBD3">EDR-C2-DNS-TXT-012</span></div>
+        <div style="flex-grow:1;padding:0 8px;font-size:12px;color:#C5CBD3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">High-volume TXT queries to a single domain</div>
+        <div style="width:74px;flex:none;padding:0 12px;text-align:right"><span class="mono" style="font-size:11px;color:#5F6B7C">0</span></div>
+      </div>
+
+      <div style="display:flex;align-items:center;height:32px;border-bottom:1px solid rgba(255,255,255,.045)">
+        <div style="width:44px;flex:none;padding-left:12px"><span class="sw sw-on"><span class="knob" style="right:2px"></span></span></div>
+        <div style="width:172px;flex:none;padding:0 8px;display:flex;align-items:center;gap:7px"><span class="dot" style="background:#3FA6DA"></span><span class="mono" style="font-size:11px;color:#C5CBD3">EDR-C2-SELFSIGN-014</span></div>
+        <div style="flex-grow:1;padding:0 8px;font-size:12px;color:#C5CBD3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Self-signed TLS cert on non-standard port</div>
+        <div style="width:74px;flex:none;padding:0 12px;text-align:right"><span class="mono" style="font-size:11px;color:#7FC4EB">1</span></div>
+      </div>
+
+      <div style="flex-grow:1"></div>
+      <div style="height:26px;flex:none;display:flex;align-items:center;padding:0 12px;background:#111418;border-top:1px solid #383E47">
+        <span class="mono" style="font-size:10.5px;color:#5F6B7C">C2 pack · 12 rules · 11 enabled</span>
+        <div style="flex-grow:1"></div>
+        <span class="mono" style="font-size:10.5px;color:#5F6B7C">rules-c2.js</span>
+      </div>
+    </div>
+
+    <!-- EDITOR -->
+    <div style="flex-grow:1;display:flex;flex-direction:column;min-width:0;background:#1C2127">
+
+      <div style="flex:none;height:44px;display:flex;align-items:center;gap:10px;padding:0 16px;background:#252A31;border-bottom:1px solid #383E47">
+        <span class="mono" style="font-size:12.5px;color:#FFFFFF">EDR-C2-HAVOC-003</span>
+        <span class="tag" style="background:rgba(205,66,70,.2);color:#FA999C">CRITICAL</span>
+        <span class="tag" style="background:rgba(236,154,60,.16);color:#F5B871">Havoc</span>
+        <span class="mono" style="font-size:10.5px;color:#5F6B7C">edited 13:41 · unsaved</span>
+        <div style="flex-grow:1"></div>
+        <button class="btn btn-min" style="height:26px">Clone</button>
+        <button class="btn" style="height:26px">Revert</button>
+        <button class="btn btn-primary" style="height:26px">Save rule</button>
+      </div>
+
+      <div style="flex-grow:1;display:flex;gap:12px;padding:12px 16px;min-height:0">
+
+        <!-- form -->
+        <div style="width:392px;flex:none;display:flex;flex-direction:column;gap:11px">
+
+          <div class="frow"><span class="lbl">Name</span>
+            <div class="inp" style="font-family:var(--ui);font-size:12.5px">Havoc Demon — RWX alloc + indirect syscall</div>
+          </div>
+
+          <div style="display:flex;gap:10px">
+            <div class="frow" style="flex-grow:1"><span class="lbl">Severity</span>
+              <div class="selbox"><span style="display:flex;align-items:center;gap:7px"><span class="dot" style="background:#CD4246"></span>critical</span>
+                <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 3.8 5 6.8 8 3.8" stroke="#ABB3BF" stroke-width="1.4"></path></svg>
+              </div>
+            </div>
+            <div class="frow" style="width:132px;flex:none"><span class="lbl">Framework</span>
+              <div class="selbox">Havoc
+                <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 3.8 5 6.8 8 3.8" stroke="#ABB3BF" stroke-width="1.4"></path></svg>
+              </div>
+            </div>
+            <div class="frow" style="width:52px;flex:none"><span class="lbl">On</span>
+              <div style="height:26px;display:flex;align-items:center"><span class="sw sw-on"><span class="knob" style="right:2px"></span></span></div>
+            </div>
+          </div>
+
+          <div class="frow"><span class="lbl">ATT&amp;CK</span>
+            <div style="display:flex;flex-wrap:wrap;gap:5px;padding:4px 0">
+              <span class="tag" style="height:20px;background:rgba(189,173,255,.14);color:#BDADFF;gap:5px;padding:0 4px 0 6px">T1055.002
+                <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1.4 1.4 6.6 6.6M6.6 1.4 1.4 6.6" stroke="#BDADFF" stroke-width="1.3"></path></svg></span>
+              <span class="tag" style="height:20px;background:rgba(189,173,255,.14);color:#BDADFF;gap:5px;padding:0 4px 0 6px">T1620
+                <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1.4 1.4 6.6 6.6M6.6 1.4 1.4 6.6" stroke="#BDADFF" stroke-width="1.3"></path></svg></span>
+              <span class="tag" style="height:20px;background:rgba(189,173,255,.14);color:#BDADFF;gap:5px;padding:0 4px 0 6px">TA0005
+                <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1.4 1.4 6.6 6.6M6.6 1.4 1.4 6.6" stroke="#BDADFF" stroke-width="1.3"></path></svg></span>
+              <span class="tag" style="height:20px;background:transparent;color:#738091;box-shadow:inset 0 0 0 1px #404854;padding:0 7px">+ add</span>
+            </div>
+          </div>
+
+          <div class="frow"><span class="lbl">Log source</span>
+            <div style="display:flex;gap:8px">
+              <div class="selbox" style="flex-grow:1">os: windows
+                <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 3.8 5 6.8 8 3.8" stroke="#ABB3BF" stroke-width="1.4"></path></svg>
+              </div>
+              <div class="selbox" style="flex-grow:1">source: sysmon
+                <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 3.8 5 6.8 8 3.8" stroke="#ABB3BF" stroke-width="1.4"></path></svg>
+              </div>
+              <div class="selbox" style="flex-grow:1">cat: process
+                <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 3.8 5 6.8 8 3.8" stroke="#ABB3BF" stroke-width="1.4"></path></svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="frow"><span class="lbl">Condition</span>
+            <div class="inp">selection and not filter_installers</div>
+          </div>
+
+          <div class="frow"><span class="lbl">Display fields</span>
+            <div style="display:flex;flex-wrap:wrap;gap:5px;padding:2px 0">
+              <span class="tag" style="background:#2F343C;color:#C5CBD3">ts</span>
+              <span class="tag" style="background:#2F343C;color:#C5CBD3">host</span>
+              <span class="tag" style="background:#2F343C;color:#C5CBD3">process.name</span>
+              <span class="tag" style="background:#2F343C;color:#C5CBD3">target.process</span>
+              <span class="tag" style="background:#2F343C;color:#C5CBD3">granted_access</span>
+            </div>
+          </div>
+
+          <div class="frow" style="flex-grow:1;min-height:0"><span class="lbl">Description</span>
+            <div style="flex-grow:1;background:#111418;border-radius:2px;box-shadow:inset 0 0 0 1px #404854;padding:8px 9px;font-size:11.5px;line-height:1.5;color:#C5CBD3">
+              Demon allocates RWX memory in a remote process and dispatches the thread through indirect syscalls, so the CreateRemoteThread (Sysmon 8) lands without a matching ntdll stub on the call stack. Pairs with a full-access ProcessAccess (Sysmon 10) moments earlier.
+              <div style="padding-top:8px"><span class="lbl">References</span>
+                <div style="padding-top:3px"><a href="#" style="font-size:11px">Elastic Security Labs — Havoc Demon analysis</a></div>
+                <div><a href="#" style="font-size:11px">SigmaHQ — proc_access_win_lsass_dyn_susp</a></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- detection json + live test -->
+        <div style="flex-grow:1;display:flex;flex-direction:column;gap:12px;min-width:0">
+
+          <div class="panel" style="flex-grow:1;display:flex;flex-direction:column;min-height:0">
+            <div class="ph"><span class="lbl" style="color:#ABB3BF">Detection</span>
+              <span class="tag" style="background:rgba(35,133,81,.18);color:#72CA9B">valid JSON</span>
+              <div style="flex-grow:1"></div>
+              <span class="mono" style="font-size:10.5px;color:#5F6B7C">ops: contains · startswith · endswith · re · in · cidr · gt/lt</span>
+            </div>
+            <div style="flex-grow:1;padding:10px 12px;background:#111418;overflow:hidden">
+<pre class="mono" style="margin:0;font-size:11.5px;line-height:1.65;color:#C5CBD3"><span style="color:#5F6B7C">1</span>  <span style="color:#8ABBFF">"detection"</span>: {
+<span style="color:#5F6B7C">2</span>    <span style="color:#8ABBFF">"selection"</span>: {
+<span style="color:#5F6B7C">3</span>      <span style="color:#8ABBFF">"event_id|in"</span>:            [<span style="color:#FBD065">8</span>, <span style="color:#FBD065">10</span>],
+<span style="color:#5F6B7C">4</span>      <span style="color:#8ABBFF">"granted_access|in"</span>:      [<span style="color:#72CA9B">"0x1F3FFF"</span>, <span style="color:#72CA9B">"0x1FFFFF"</span>],
+<span style="color:#5F6B7C">5</span>      <span style="color:#8ABBFF">"target.process|endswith"</span>: [<span style="color:#72CA9B">"explorer.exe"</span>, <span style="color:#72CA9B">"svchost.exe"</span>, <span style="color:#72CA9B">"RuntimeBroker.exe"</span>],
+<span style="color:#5F6B7C">6</span>      <span style="color:#8ABBFF">"memory.protect"</span>:         <span style="color:#72CA9B">"PAGE_EXECUTE_READWRITE"</span>
+<span style="color:#5F6B7C">7</span>    },
+<span style="color:#5F6B7C">8</span>    <span style="color:#8ABBFF">"filter_installers"</span>: {
+<span style="color:#5F6B7C">9</span>      <span style="color:#8ABBFF">"process.path|startswith"</span>: [<span style="color:#72CA9B">"C:\\Program Files\\"</span>, <span style="color:#72CA9B">"C:\\Windows\\SoftwareDistribution\\"</span>],
+<span style="color:#5F6B7C">10</span>     <span style="color:#8ABBFF">"process.signed"</span>:         <span style="color:#FBD065">true</span>
+<span style="color:#5F6B7C">11</span>   },
+<span style="color:#5F6B7C">12</span>   <span style="color:#8ABBFF">"condition"</span>: <span style="color:#72CA9B">"selection and not filter_installers"</span>
+<span style="color:#5F6B7C">13</span> }</pre>
+            </div>
+          </div>
+
+          <div class="panel" style="flex:none;box-shadow:inset 0 0 0 1px rgba(35,133,81,.35)">
+            <div class="ph" style="background:rgba(35,133,81,.10)">
+              <span class="lbl" style="color:#F6F7F9">Live test</span>
+              <div style="flex-grow:1"></div>
+              <span class="mono" style="font-size:10.5px;color:#8F99A8">against 24,318 loaded events</span>
+              <button class="btn btn-primary" style="height:20px;font-size:11px">Run</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.06)">
+              <span style="display:flex;align-items:center;gap:7px;font-size:12px;color:#72CA9B">
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#72CA9B" stroke-width="1.3"></circle><path d="M4.2 7.2 6.2 9.2 9.8 4.9" stroke="#72CA9B" stroke-width="1.5" stroke-linecap="square"></path></svg>
+                Matched 2 events
+              </span>
+              <span class="mono" style="font-size:11px;color:#738091">12 ms</span>
+              <span class="mono" style="font-size:11px;color:#738091">1 host</span>
+              <span class="mono" style="font-size:11px;color:#738091">0 in baseline scenario (no false positives)</span>
+              <div style="flex-grow:1"></div>
+              <a href="#" style="font-size:11px">Open matches →</a>
+            </div>
+            <div style="display:flex;height:25px;align-items:center;border-bottom:1px solid rgba(255,255,255,.045)">
+              <div class="mono" style="width:110px;flex:none;padding:0 12px;font-size:11px;color:#738091">13:15:19.033</div>
+              <div class="mono" style="width:104px;flex:none;font-size:11px;color:#C5CBD3">WIN-WKS14</div>
+              <div class="mono" style="width:68px;flex:none;font-size:11px;color:#8F99A8">sysmon 8</div>
+              <div class="mono" style="flex-grow:1;padding-right:12px;font-size:11px;color:#C5CBD3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">powershell.exe → explorer.exe · RWX · 0x1F3FFF</div>
+            </div>
+            <div style="display:flex;height:25px;align-items:center">
+              <div class="mono" style="width:110px;flex:none;padding:0 12px;font-size:11px;color:#738091">13:15:19.041</div>
+              <div class="mono" style="width:104px;flex:none;font-size:11px;color:#C5CBD3">WIN-WKS14</div>
+              <div class="mono" style="width:68px;flex:none;font-size:11px;color:#8F99A8">sysmon 10</div>
+              <div class="mono" style="flex-grow:1;padding-right:12px;font-size:11px;color:#C5CBD3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">ProcessAccess explorer.exe · 0x1F3FFF</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
