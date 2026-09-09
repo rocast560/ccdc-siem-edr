@@ -95,11 +95,24 @@ def poll_channels():
                 state.norm_event("eventlog", "eventlog", "critical", "Security audit log cleared",
                                  {"eid": eid, "channel": channel})
             if channel.startswith(("Windows PowerShell", "Microsoft-Windows-PowerShell")) and eid == "4104":
-                script = _field(ev, "ScriptBlockText")[:300]
+                script = _field(ev, "ScriptBlockText")[:2000]
                 rec = state.norm_event("eventlog", "eventlog", "low",
                                        "PowerShell script block", {"eid": eid, "channel": channel,
                                                                    "cmdline": script})
                 rules.evaluate(rec)
+                # AMSI-grade content scan: the 4104 buffer is the script AFTER
+                # deobfuscation - the same view the AMSI stream would scan
+                try:
+                    from . import signatures
+                    for h in signatures.scan_bytes(script.encode("utf-8", "replace"), memory=True):
+                        state.raise_alert(h["id"], h["severity"],
+                                          "PowerShell script content: " + h["name"],
+                                          h["why"] + " Matched inside a 4104 script-block "
+                                          "buffer - deobfuscated script content at execution "
+                                          "time (post-deobfuscation, like the AMSI stream).",
+                                          event=rec, data={"script_head": script[:200]})
+                except Exception:
+                    pass
             elif channel == "Security" and eid == "4769":
                 # Kerberoasting: service ticket requested with RC4 (0x17)
                 tkt = _field(ev, "TicketEncryptionType")
@@ -193,6 +206,19 @@ def enable_audit_sources():
         results["dns_client_channel"] = True
     except Exception as e:
         results["dns_client_channel"] = str(e)
+    # kernel-level memory/thread visibility providers (usually restricted to
+    # PPL-signed consumers on stock systems; recorded either way)
+    for prov, tag in (("Microsoft-Windows-Threat-Intelligence", "ti_provider"),
+                      ("Microsoft-Windows-Kernel-Memory", "kernel_memory")):
+        try:
+            r = subprocess.run(["logman", "start", "CCDCEdr-" + tag, "-ets", "-p", prov,
+                                "0xFFFFFFFFFFFFFFFF", "-o", os.path.join(
+                                    os.path.dirname(os.path.abspath(__file__)), "state",
+                                    tag + ".etl")],
+                               capture_output=True, text=True, timeout=30)
+            results[tag] = (r.returncode == 0) or (r.stderr or "")[:80]
+        except Exception as e:
+            results[tag] = str(e)[:80]
     return results
 
 def try_kernel_trace():

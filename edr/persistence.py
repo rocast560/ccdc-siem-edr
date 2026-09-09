@@ -29,6 +29,14 @@ LSA_VALUES = ("Security Packages", "Notification Packages")
 COR_ENV = ("COR_ENABLE_PROFILING", "COR_PROFILER", "COR_PROFILER_PATH")
 SIDECAND_PATHS = [r"C:\Program Files", r"C:\Program Files (x86)"]
 
+# tranche-4 additions not covered above
+SPE_KEY = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\SilentProcessExit"
+SSH_PATHS = [
+    r"C:\ProgramData\ssh\authorized_keys",
+    os.path.join(os.environ.get("USERPROFILE", ""), ".ssh\\authorized_keys"),
+    r"C:\ProgramData\ssh\sshd_config",
+]
+
 def _enum_values(root, sub):
     out = {}
     for hive, name in ((root, sub), (root, sub)):
@@ -338,6 +346,24 @@ def collect():
         winreg.CloseKey(k)
     except OSError:
         pass
+    # SilentProcessExit MonitorProcess hijack (RoguePotato/Jenkins family)
+    try:
+        spe = _enum_values(winreg.HKEY_LOCAL_MACHINE, SPE_KEY)
+        if spe.get("MonitorProcess"):
+            inv.setdefault("spe", {})["MonitorProcess"] = spe["MonitorProcess"]
+    except OSError:
+        pass
+    # SSH backdoors: authorized_keys contents hash + sshd_config directive changes
+    import hashlib
+    for p in SSH_PATHS:
+        try:
+            with open(p, "rb") as f:
+                blob = f.read()
+            if p.endswith("authorized_keys") and blob.strip():
+                inv.setdefault("ssh", []).append(
+                    p + ":" + hashlib.sha256(blob).hexdigest()[:16])
+        except OSError:
+            pass
     return inv
 
 def take_baseline():
@@ -442,6 +468,14 @@ def _diff(base, cur):
         if item not in base.get("wlnotify", {}):
             findings.append(("registry", "PERS-WLNOTIFY", "critical",
                              f"Winlogon Notify DLL: {item} = {dll[:120]}", item))
+    for name, val in cur.get("spe", {}).items():
+        if name not in base.get("spe", {}):
+            findings.append(("registry", "PERS-SPE", "critical",
+                             f"SilentProcessExit {name}: {val[:120]}", SPE_KEY + "\\" + name))
+    for ent in cur.get("ssh", []):
+        if ent not in base.get("ssh", []):
+            findings.append(("file", "PERS-SSH", "critical",
+                             "SSH backdoor surface changed: " + ent.split(":")[0], ent))
     return findings
 
 def audit_cycle():
@@ -455,6 +489,19 @@ def audit_cycle():
     findings = _diff(base, cur)
     for kind, rule_id, sev, title, path in findings:
         rec = state.norm_event("auditor", kind, sev, title, {"path": path})
+        # new service: scan its binary immediately (unsigned implant as svc)
+        if rule_id == "PERS-SERVICE":
+            meta = cur.get("services", {}).get(path) or {}
+            binpath = (meta.get("path") or "").strip('"').split(" ")[0]
+            if binpath and os.path.isfile(binpath):
+                try:
+                    from . import signatures as _sig
+                    for h in _sig.scan_file(binpath):
+                        state.raise_alert(h["id"], h["severity"],
+                                          "Service binary signature: " + h["name"], h["why"],
+                                          event=rec, data={"service": path, "binary": binpath})
+                except Exception:
+                    pass
         state.raise_alert(rule_id, sev, title,
                           "Persistence auditor diff against T0 baseline - artifact appeared after baseline capture.",
                           event=rec, data={"path": path})

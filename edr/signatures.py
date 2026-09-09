@@ -42,6 +42,20 @@ RULES = [
          strings=[b"Demon", b"Havoc", b"HellsGate", b"SleepObf", b"demon.x64.dll", b"\\\\Havoc\\"],
          require=2, magic=PE_MAGIC,
          why="Static indicators of the Havoc Demon agent or its loaders."),
+    dict(id="SIG-MINGW", name="MinGW/GCC-compiled binary", severity="high",
+         strings=[b"GCC: (GNU)", b"libgcc", b"libstdc++", b"mingw32", b"__gxx_personality_v0",
+                  b"mingw-w64", b"cygwin", b"ZpIkLmG]", b"_gnu_exception_handler"],
+         require=2, magic=PE_MAGIC,
+         why="Binary compiled with MinGW/g++ on a production Windows server. watershell-cpp "
+             "ships as a g++ build, and corporate enterprise software is MSVC-signed - "
+             "libgcc/libstdc++ runtime imports here are a strong implant indicator."),
+    dict(id="SIG-AMSI-BYPASS", name="AMSI bypass / tamper pattern", severity="critical",
+         strings=[b"amsiInitFailed", b"AmsiScanBuffer", b"AmsiInitialize", b"amsi.dll",
+                  b"System.Management.Automation.AmsiUtils", b"NonPublic,Static",
+                  b"SET_CONTENT", b"REF].Assembly"],
+         require=2, magic=None,
+         why="AMSI bypass tradecraft: forcing amsiInitFailed, patching AmsiScanBuffer, "
+             "or reflecting over AmsiUtils to disable script scanning."),
     dict(id="SIG-WATERSHELL", name="Watershell raw-packet shell (RITRedteam)", severity="critical",
          strings=[b"status:", b"run:", b"/proc/net/arp", b"/proc/net/route",
                   b"Running in promisc mode", b"TCP mode (experimental)", b"00000000"],
@@ -94,6 +108,18 @@ def scan_file(path):
     key = (st.st_size, int(st.st_mtime))
     if _scanned.get(path) == (key, True):
         return []                       # unchanged, previously clean
+    # timestomp: file claims an mtime far older than its (unfakeable) creation time
+    if hasattr(st, "st_ctime") and st.st_ctime - st.st_mtime > 60 * 60 * 24 * 30:
+        from . import state as _state
+        rec = _state.norm_event("filescan", "file", "high",
+                                "Timestomped file: " + os.path.basename(path),
+                                {"path": path, "mtime": int(st.st_mtime), "ctime": int(st.st_ctime)})
+        _state.raise_alert("TIME-STOMP", "high", "Timestomped file: " + path,
+                           "File's modification timestamp predates its creation by over 30 days. "
+                           "NTFS creation time cannot be set by normal APIs, so backdating mtime "
+                           "(the timestomp evasion) always leaves this signature.",
+                           event=rec, data={"path": path, "mtime": int(st.st_mtime),
+                                            "ctime": int(st.st_ctime)})
     try:
         with open(path, "rb") as f:
             data = f.read(MAX_READ)
@@ -125,7 +151,7 @@ def scan_file(path):
             state.scans.append({"ts": time.time(), "path": path, "verdict": "clean", "sha256_16": sha})
         return []
 
-def scan_dirs(dirs=None, deep=2):
+def scan_dirs(dirs=None, deep=6):
     """Walk common drop directories; scan new/changed files."""
     n = 0
     for d in (dirs or USER_WRITABLE_DIRS):

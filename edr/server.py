@@ -8,7 +8,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
 from . import (state, rules, signatures, persistence, processes, eventlog, network,
-               responder, lsass, dotnet, dnsbeacon, linux_sensor, icmp, memscan)
+               responder, lsass, dotnet, dnsbeacon, linux_sensor, icmp, memscan,
+               modules, hooks, pipes, memmap, handles, intel)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -22,7 +23,9 @@ def sensor_loop(stop: threading.Event):
     state.stats["sources"] = ["wmi-process-poll", "windows-eventlog", "persistence-auditor",
                               "signature-scanner", "netstat-flows+beacon-cadence",
                               "dotnet-etw-loader", "lsass-handle-sweep", "dns-client-beacons",
-                              "linux-packet-sockets", "icmp-cadence", "process-memory-scan"]
+                              "linux-packet-sockets", "icmp-cadence", "process-memory-scan",
+                              "module-walk", "ntdll-integrity+thread-scan", "named-pipes",
+                              "memmap-rwx/syscall-stubs", "cross-process-handles"]
     state.stats["last_cycle"] = time.time()
     eventlog.enable_audit_sources()
     eventlog.try_kernel_trace()
@@ -30,37 +33,49 @@ def sensor_loop(stop: threading.Event):
     state.norm_event("sensor", "audit", "info", ".NET ETW loader session " +
                      ("started" if dotnet_ok else "unavailable"), {})
     persistence.take_baseline()
-    t_proc = t_evt = t_net = t_audit = t_scan = t_lsass = t_dotnet = t_dns = t_linux = 0
-    t_icmp = t_mem = 0
-    while not stop.is_set():
-        now = time.time()
-        try:
-            if now - t_proc >= 3:
-                processes.poll_once(); t_proc = now
-            if now - t_evt >= 3:
-                eventlog.poll_channels(); t_evt = now
-            if now - t_net >= 5:
-                network.poll_once(); t_net = now
-            if now - t_dns >= 10:
-                dnsbeacon.detect(); t_dns = now
-            if now - t_icmp >= 10:
-                icmp.poll(); t_icmp = now
-            if now - t_mem >= 60:
-                memscan.scan_all(); t_mem = now
-            if now - t_lsass >= 30:
-                lsass.sweep(); t_lsass = now
-            if now - t_dotnet >= 60:
-                dotnet.poll(); t_dotnet = now
-            if now - t_linux >= 10:
-                linux_sensor.poll(); t_linux = now
-            if now - t_audit >= 30:
-                persistence.audit_cycle(); t_audit = now
-            if now - t_scan >= 60:
-                signatures.scan_dirs(); t_scan = now
-            state.stats["last_cycle"] = now
-        except Exception as e:
-            state.norm_event("sensor", "audit", "low", "Sensor cycle error", {"error": str(e)})
-        stop.wait(1.0)
+    # one thread per sensor: a slow pass (audit + eventlog + memmap together)
+    # must not stretch the fast cadences (netstat 5s) that beacon detection
+    # depends on - sequential scheduling stretched them to 30-60s under load
+    jobs = [
+        (3,   "process-poll",  lambda: processes.poll_once()),
+        (3,   "eventlog",      lambda: eventlog.poll_channels()),
+        (5,   "netstat",       lambda: network.poll_once()),
+        (10,  "dnsbeacon",     lambda: dnsbeacon.detect()),
+        (10,  "icmp",          lambda: icmp.poll()),
+        (30,  "lsass",         lambda: lsass.sweep()),
+        (45,  "dotnet",        lambda: dotnet.poll()),
+        (10,  "linux",         lambda: linux_sensor.poll()),
+        (30,  "audit",         lambda: persistence.audit_cycle()),
+        (60,  "scan",          lambda: signatures.scan_dirs()),
+        (60,  "memscan",       lambda: memscan.scan_all()),
+        (45,  "modules",       lambda: modules.poll()),
+        (90,  "hooks",         lambda: hooks.poll()),
+        (20,  "pipes",         lambda: pipes.poll()),
+        (75,  "memmap",        lambda: memmap.poll()),
+        (45,  "handles",       lambda: handles.sweep()),
+    ]
+
+    def run_sensor(interval, name, fn):
+        while not stop.is_set():
+            t0 = time.time()
+            try:
+                fn()
+                state.stats["last_cycle"] = time.time()
+            except Exception as e:
+                state.norm_event("sensor", "audit", "low",
+                                 "Sensor error: " + name, {"error": str(e)[:200]})
+            elapsed = time.time() - t0
+            stop.wait(max(0.5, interval - elapsed))
+
+    threads = []
+    for interval, name, fn in jobs:
+        th = threading.Thread(target=run_sensor, args=(interval, name, fn),
+                              daemon=True, name="sensor-" + name)
+        th.start()
+        threads.append(th)
+        time.sleep(0.3)              # stagger startup
+    for th in threads:
+        th.join()
 
 def watchdog(stop: threading.Event):
     """Alert if the sensor loop stalls (killed/blinded sensors)."""
@@ -119,6 +134,15 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(200, list(state.scans)[-200:])
         elif u.path == "/api/cadence":
             self._send(200, network.cadence_snapshot())
+        elif u.path == "/api/intel":
+            ip = (q.get("ip") or [""])[0]
+            if not ip:
+                self._send(400, {"error": "ip parameter required"})
+                return
+            try:
+                self._send(200, intel.enrich(ip, force=(q.get("force") or ["0"])[0] == "1"))
+            except Exception as e:
+                self._send(200, {"ip": ip, "error": str(e)})
         else:
             self._send(404, {"error": "not found"})
 
