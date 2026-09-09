@@ -42,10 +42,10 @@ RULES = [
     dict(id="PROG-IMPLANT-LAUNCH", name="Signature hit on launched process image", severity="critical", kind="process",
          field="sig", re=r".", why="Process launched from an image whose bytes matched an implant signature rule."),
     dict(id="PROC-SCRIPTHOST", name="Script host launching from a drop zone", severity="high", kind="process",
-         field="cmdline", re=r"(?i)(wscript|cscript|mshta)(\.exe)?\"?\s+.*\\appdata\\|\\users\\public\\|\\temp\\",
+         field="cmdline", re=r"(?i)(wscript|cscript|mshta)(\.exe)?\"?\s+.*(\\appdata\\|\\users\\public\\|\\temp\\)",
          why="Windows Script Host executing content from a user-writable drop zone."),
     dict(id="EVT-SCRIPTHOST", name="Script host launch (4688)", severity="high", kind="eventlog",
-         field="cmdline", re=r"(?i)(wscript|cscript|mshta)(\.exe)?\"?\s+.*\\appdata\\|\\users\\public\\|\\temp\\",
+         field="cmdline", re=r"(?i)(wscript|cscript|mshta)(\.exe)?\"?\s+.*(\\appdata\\|\\users\\public\\|\\temp\\)",
          why="Kernel-fed 4688: script host executing drop-zone content - the evasion-script-"
              "host-launcher family (chm/lnk/js/vbs cradles)."),
     dict(id="PROC-DEFENDER-SIDELOAD", name="Defender binary outside install path", severity="critical", kind="process",

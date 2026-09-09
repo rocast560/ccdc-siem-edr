@@ -195,24 +195,22 @@
       return;
     }
     rows.forEach(function (r) {
-      var row = mk("div");
-      row.style.cssText = "display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid #1C2127;" +
-        "cursor:pointer;font:12px var(--mono)" +
-        (selected && selected.key === r.key ? ";background:var(--raised)" : "");
-      var dot = mk("span");
-      dot.style.cssText = "width:8px;height:8px;border-radius:50%;flex:none;background:" +
-        sevColor(r.rule === "NET-BEACON" ? "critical" : "high");
-      var peer = mk("b", null, String(r.peer));
-      peer.style.cssText = "min-width:130px;color:var(--fg)";
+      var sel = selected && selected.key === r.key;
+      var row = mk("div", "lv-row click");
+      if (sel) { row.style.background = "rgba(91,163,208,.12)"; row.style.boxShadow = "inset 2px 0 0 var(--blue4)"; }
+      var dot = mk("span", "lv-dot");
+      dot.style.background = sevColor(r.rule === "NET-BEACON" ? "critical" : "high");
+      var peer = mk("span", null, String(r.peer));
+      peer.style.cssText = "flex:0 0 140px;color:var(--fg);font-weight:600";
       var iv = mk("span", null, "~" + r.interval + "s");
-      iv.style.cssText = "min-width:52px;color:#FBD065";
-      var pid = mk("span", null, "pid " + r.pid);
-      pid.style.cssText = "min-width:70px;color:var(--fg4)";
+      iv.style.cssText = "flex:0 0 56px;color:#EC9A3C";
+      var pid = mk("span", "lv-t", "pid " + r.pid);
+      pid.style.cssText = "flex:0 0 76px";
       var tag = mk("span", "lv-pill", r.rule.replace("-BEACON", ""));
-      tag.style.cssText = "margin-left:auto;color:var(--fg3);border:1px solid var(--line)";
+      tag.style.cssText = "margin-left:auto;color:var(--fg2);background:var(--well);box-shadow:inset 0 0 0 1px var(--line)";
       row.appendChild(dot); row.appendChild(peer); row.appendChild(iv);
       row.appendChild(pid); row.appendChild(tag);
-      row.onclick = function () { selected = r; renderList(); renderEvidence(); };
+      row.onclick = function () { selected = r; renderList(); renderEvidence(); renderActions(); };
       listP._body.appendChild(row);
     });
   }
@@ -274,36 +272,44 @@
     if (!selected) { actP._body.appendChild(mk("div", "lv-empty", "select a beacon to decide")); return; }
     var pid = selected.pid, peer = selected.peer;
 
-    var note = mk("div", "lv-mut",
-      "Suspend freezes the process without deleting it - the beacon stops " +
-      "communicating and its full memory stays on host for forensics. Block " +
-      "cuts egress at the firewall while the process keeps running. Kill is " +
-      "destructive; guardrails refuse system-critical targets either way.");
-    actP._body.appendChild(note);
+    var head = mk("div");
+    head.style.cssText = "display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;font:11.5px var(--mono)";
+    var kp = mk("span", "lv-t", "target"); var kv = mk("b", null, String(peer)); kv.style.color = "var(--fg)";
+    var pp = mk("span", "lv-t", "· pid"); var pv = mk("span", null, String(pid)); pv.style.color = "var(--fg2)";
+    head.appendChild(kp); head.appendChild(kv); head.appendChild(pp); head.appendChild(pv);
+    actP._body.appendChild(head);
 
-    var g1 = mk("div"); g1.style.cssText = "display:flex;flex-direction:column;gap:6px";
-    g1.appendChild(actBtn("Suspend process — contain, preserve evidence", "#935610",
-                          { action: "suspend", pid: pid }));
-    g1.appendChild(actBtn("Resume process — release containment", "#2D5D9B",
-                          { action: "resume", pid: pid }));
-    g1.appendChild(actBtn("Block egress — firewall the peer, keep process", "#935610",
-                          { action: "block", peer: peer }));
-    g1.appendChild(actBtn("Unblock peer", "#2D5D9B", { action: "unblock", peer: peer }));
-    g1.appendChild(actBtn("Kill process — destructive", "#A82A2A", { action: "kill", pid: pid }));
-    actP._body.appendChild(g1);
+    function grp(t) { return mk("div", "lv-sub", t); }
+    function stack() { var d = mk("div"); d.style.cssText = "display:flex;flex-direction:column;gap:6px"; return d; }
+    function roww() { var d = mk("div"); d.style.cssText = "display:flex;gap:6px"; return d; }
 
-    var g2 = mk("div"); g2.style.cssText = "display:flex;gap:6px";
+    actP._body.appendChild(grp("contain — reversible, preserves memory for forensics"));
+    var s1 = stack();
+    s1.appendChild(actBtn("Suspend process  ·  recommended first move", "#34709f", { action: "suspend", pid: pid }));
+    s1.appendChild(actBtn("Block egress  ·  firewall peer, keep process", "#935610", { action: "block", peer: peer }));
+    actP._body.appendChild(s1);
+
+    actP._body.appendChild(grp("release"));
+    var rel = roww();
+    var rb1 = actBtn("Resume process", "#2a2e33", { action: "resume", pid: pid }); rb1.style.flex = "1"; rb1.style.color = "var(--fg2)";
+    var rb2 = actBtn("Unblock peer", "#2a2e33", { action: "unblock", peer: peer }); rb2.style.flex = "1"; rb2.style.color = "var(--fg2)";
+    rel.appendChild(rb1); rel.appendChild(rb2);
+    actP._body.appendChild(rel);
+
+    actP._body.appendChild(grp("eradicate — destructive · guardrails refuse system-critical targets"));
+    actP._body.appendChild(actBtn("Kill process", "#A82A2A", { action: "kill", pid: pid }));
+
+    actP._body.appendChild(grp("triage"));
+    var g2 = roww();
     var mon = mk("button", "lv-actbtn", "Monitor only (ack)");
-    mon.style.cssText = "flex:1;color:var(--fg2)";
+    mon.style.cssText = "flex:1;color:var(--fg2);background:#2a2e33";
     mon.onclick = function () {
-      if (selected.id)
-        getJSON("/api/alerts/status", 1, { id: selected.id, status: "ack" }).then(tick);
+      if (selected.id) getJSON("/api/alerts/status", 1, { id: selected.id, status: "ack" }).then(tick);
     };
     var res = mk("button", "lv-actbtn", "Resolve");
-    res.style.cssText = "flex:1;color:var(--fg2)";
+    res.style.cssText = "flex:1;color:var(--fg2);background:#2a2e33";
     res.onclick = function () {
-      if (selected.id)
-        getJSON("/api/alerts/status", 1, { id: selected.id, status: "resolved" }).then(tick);
+      if (selected.id) getJSON("/api/alerts/status", 1, { id: selected.id, status: "resolved" }).then(tick);
     };
     g2.appendChild(mon); g2.appendChild(res);
     actP._body.appendChild(g2);
