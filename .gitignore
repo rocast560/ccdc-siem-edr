@@ -21,3 +21,9 @@ desktop.ini
 
 # scratch
 delete
+
+# test scaffolding (local venv + implant binary copies + poll snapshots)
+.t/
+tests/bin/
+im_tmp.json
+st_tmp.json

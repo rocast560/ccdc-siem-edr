@@ -488,3 +488,50 @@ selection→actions→animation in-browser, screenshot review.
 **Click animations**: all buttons console-wide get a press
 (translate+scale+brightness) and a spring "pop" keyframe via delegated
 listener — verified applied in-browser.
+
+---
+
+## Addendum 13 — Commercial EDR gap closure (CrowdStrike / SentinelOne / Defender)
+
+Research doc: `development-research/commercial-edr-techniques.md` (public
+vendor sources). What was missing vs the commercial verdict layer, and what
+this build added:
+
+1. **Correlated verdicts** (Storyline/IOA-chaining equivalent): new
+   `edr/correlation.py` fuses every alert into per-entity weighted evidence
+   with a 0-99 confidence score and tiering (>=85 confirmed). Feeds the new
+   seventh console screen, Implants.
+2. **Entity quarantine with verification**: `quarantine_entity` =
+   block C2 peers -> kill process TREE -> vault binary (+config extraction
+   auto-block) -> persist status. `verify_containment` re-checks process /
+   binary / firewall / beacon-silence before the UI shows INACTIVE-verified.
+3. **Device isolation**: host-wide outbound block with loopback exemption
+   (console stays reachable), release button, banner + alert.
+4. **Detect-vs-Protect policy**: optional auto-quarantine at confirmed
+   threshold (default off).
+5. **Tree kill** (`taskkill /T`): whole threat sequence, not one pid.
+
+Sensor hardening found during the live end-to-end:
+- memmap/hooks only ever scanned the 6-8 NEWEST processes — aged implants
+  were invisible. Now round-robin rotated across the candidate list.
+- Sensors flagged the EDR's own process (SYSCALL-STUB/RWX self-FPs) —
+  self/parent skip added.
+- Browsers' V8 JIT pages tripped RWX + syscall-stub — JIT_HOSTS extended
+  (chrome/msedge/brave/opera/vivaldi/firefox/electron) and the stub scan
+  gated for JIT hosts.
+- Beacon cooldown keyed on peer alone collapsed two processes beaconing the
+  same C2 into one alert (attribution loss) — pid now always joins the key.
+- Containment "silence" check now requires the CONTAINED pids to be silent
+  (shared loopback peers carry unrelated console traffic by definition).
+- Re-infection flip requires fresh alerts + grace window (termination-lag
+  race had resurrected a mid-kill entity to "active").
+
+Live E2E (implant.exe = standalone app-local python binary running
+tests/fake_implant.py: private RWX + syscall stub + IMIX config strings +
+5s-jitter TCP beacon to a loopback sink): scored **99/confirmed** on six
+signals (NET-BEACON 45, MEM-RWX-UNBACKED 28, SYSCALL-STUB 22, MEM-RWX-NEW
+16, MEM-SIG-REALM-IMIX 15, MEM-SIG-MUSL-ELF 15), quarantined from the UI
+button, status chip QUARANTINED, verification checklist green, entity shows
+INACTIVE-contained. Guardrails re-verified: EDR/lsass/protected-path
+refusals intact; a Program Files interpreter image is refused for
+quarantine by design (the EDR also refuses to vault its own interpreter).

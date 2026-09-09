@@ -1,5 +1,5 @@
 """Shared EDR state: event store, alert store, thread-safe ring buffers."""
-import threading, time, json, collections
+import os, threading, time, json, collections
 
 LOCK = threading.RLock()
 
@@ -23,6 +23,30 @@ stats = {
 
 rule_hits = {}        # rule_id -> lifetime hit count
 rule_enabled = {}     # rule_id -> bool (populated by rules module on import)
+
+# entity lifecycle: correlation key -> {status, ts, by, detail}
+# status: active|monitoring|suspended|quarantined|killed|dismissed(-verified)
+# persisted across sensor restarts: containment decisions must survive a reboot
+IMPLANT_STATUS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                   "state", "implant_status.json")
+
+def _load_implant_status():
+    try:
+        with open(IMPLANT_STATUS_FILE) as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def save_implant_status():
+    try:
+        os.makedirs(os.path.dirname(IMPLANT_STATUS_FILE), exist_ok=True)
+        with open(IMPLANT_STATUS_FILE, "w") as f:
+            json.dump(implant_status, f, indent=1)
+    except Exception:
+        pass
+
+implant_status = _load_implant_status()
+protect_mode = False   # Detect-vs-Protect policy: auto-quarantine confirmed implants
 _seq = [0]
 
 def norm_event(source, kind, severity, title, data):
@@ -67,6 +91,14 @@ def raise_alert(rule_id, severity, title, why, event=None, data=None):
         stats["alerts_total"] += 1
         rule_hits[rule_id] = rule_hits.get(rule_id, 0) + 1
         tuning.remember(rule_id, data, a)
+        if protect_mode and not rule_id.startswith(("RESP-", "SENSOR-")):
+            # Detect-vs-Protect policy: re-evaluate entity scores off-thread
+            try:
+                from . import correlation
+                threading.Thread(target=correlation.maybe_auto_quarantine,
+                                 daemon=True, name="protect-mode").start()
+            except Exception:
+                pass
         return a
 
 def set_alert_status(alert_id, status):
