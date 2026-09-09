@@ -274,3 +274,121 @@ def unblock_ip(peer):
                     "name=CCDC-EDR-Block-" + peer], capture_output=True, timeout=30)
     _log("unblock", True, f"removed firewall block for {peer}")
     return True, "block removed"
+
+# ------------------------------------------------------- entity-level response
+
+ISOLATE_RULE = "CCDC-EDR-Host-Isolation"
+
+def set_entity_status(key, status, by="analyst", detail=""):
+    """Record the lifecycle state of a correlated implant entity."""
+    if not key:
+        return False, "no entity"
+    state.implant_status[str(key)] = {"status": status, "ts": time.time(), "by": by,
+                                      "detail": detail or status}
+    state.save_implant_status()
+    return True, status
+
+def kill_tree(pid):
+    """Terminate a process AND its descendants — SentinelOne's 'kill the whole
+    threat sequence' semantics: spawners and injected children go too."""
+    got, err = _guard(pid, "kill-tree")
+    if err:
+        _log("kill-tree", False, f"pid {pid}: {err}"); return False, err
+    _, name, path = got
+    r = subprocess.run(["taskkill", "/F", "/T", "/PID", str(pid)],
+                       capture_output=True, text=True, timeout=60)
+    ok = r.returncode == 0
+    _log("kill-tree", ok, f"pid {pid} ({name}) tree terminated")
+    if ok:
+        state.raise_alert("RESP-KILL", "high", f"Response: killed process tree of pid {pid} ({name})",
+                          "Analyst-initiated tree kill: the process and every descendant "
+                          "(spawners, injected children, dropped helpers) were terminated.",
+                          data={"pid": int(pid), "name": name, "path": path, "tree": True})
+    return ok, (r.stdout or r.stderr).strip()[:160]
+
+def quarantine_entity(pid, peers=None, path=None, by="analyst"):
+    """Full implant containment — quarantine an analyst can trust:
+    the C2 channel dies AND the binary is vaulted AND the status flips.
+
+    Sequence (order matters — cut the network before touching the process):
+      1. firewall-block every known C2 peer (egress + ingress)
+      2. terminate the process tree (guarantees no further callbacks)
+      3. vault the binary (deny-execute ACL, origin manifest)
+      4. config extraction on the vaulted copy auto-blocks missed peers
+      5. entity status -> 'quarantined' (verified-inactive once /api/verify passes)
+    """
+    peers = [str(p) for p in (peers or []) if IP_RX.match(str(p))]
+    results = {"blocked_peers": [], "killed": None, "vault": None, "errors": []}
+
+    # 1. cut egress first
+    for peer in peers:
+        okb, _ = block_ip(peer)
+        if okb:
+            results["blocked_peers"].append(peer)
+
+    # 2. terminate the tree (guardrailed); an already-exited pid is fine
+    name, real_path = "", (path or "").lower() or None
+    if pid:
+        got, err = _guard(pid, "quarantine")
+        if err and "gone" not in err:
+            _log("quarantine-entity", False, f"pid {pid}: {err}")
+            return False, err
+        if got:
+            info, gname, gpath = got
+            name = gname
+            real_path = real_path or gpath
+            r = subprocess.run(["taskkill", "/F", "/T", "/PID", str(pid)],
+                               capture_output=True, text=True, timeout=60)
+            results["killed"] = r.returncode == 0
+            if not results["killed"] and "not found" not in (r.stdout or "") + (r.stderr or ""):
+                results["errors"].append("taskkill: " + (r.stderr or "").strip()[:80])
+
+    # 3.+4. vault the binary (quarantine_file extracts config + auto-blocks peers)
+    if real_path and os.path.isfile(real_path):
+        okq, vault = quarantine_file(real_path)
+        results["vault"] = vault if okq else None
+        if not okq:
+            results["errors"].append("vault failed")
+
+    # 5. record the lifecycle state on the correlation key
+    from . import correlation as _corr
+    key = _corr._entity_key(real_path, pid, peers[0] if peers else None)
+    set_entity_status(key, "quarantined", by=by,
+                      detail=(name or os.path.basename(real_path or "") or str(pid)))
+    ok = not results["errors"] and bool(results["killed"] or results["vault"] or results["blocked_peers"])
+    state.raise_alert("RESP-QUARANTINE", "high",
+                      f"Response: implant quarantined ({name or real_path or pid})",
+                      "Full entity containment: C2 peers firewalled, process tree terminated, "
+                      "binary moved to the vault with execute denied. The entity shows as "
+                      "quarantined/inactive once containment verification passes.",
+                      data={"pid": pid, "name": name, "path": real_path, **results})
+    _log("quarantine-entity", bool(ok),
+         f"{name or real_path or pid}: peers={results['blocked_peers']} "
+         f"killed={results['killed']} vault={'yes' if results['vault'] else 'no'}")
+    return bool(ok), results
+
+def isolate_host():
+    """Network-contain the whole machine (Defender 'device isolation'
+    semantics): block ALL outbound traffic. Loopback is exempt from Windows
+    Firewall filtering, so the EDR console on 127.0.0.1 stays reachable."""
+    subprocess.run(["netsh", "advfirewall", "firewall", "add", "rule",
+                    "name=" + ISOLATE_RULE, "dir=out", "action=block",
+                    "profile=any"], capture_output=True, timeout=30)
+    _log("isolate", True, "host network isolation ON (all outbound blocked; loopback exempt)")
+    state.raise_alert("RESP-ISOLATE", "critical", "Response: HOST NETWORK ISOLATION enabled",
+                      "All outbound traffic from this machine is now blocked at the firewall. "
+                      "Loopback remains reachable, so this console and the EDR sensors stay "
+                      "manageable. Release isolation from the Implants screen when done.",
+                      data={"rule": ISOLATE_RULE, "direction": "out"})
+    return True, "host isolated — outbound blocked (console still reachable on loopback)"
+
+def release_host():
+    """Undo host isolation."""
+    subprocess.run(["netsh", "advfirewall", "firewall", "delete", "rule",
+                    "name=" + ISOLATE_RULE], capture_output=True, timeout=30)
+    _log("release", True, "host network isolation released")
+    state.raise_alert("RESP-ISOLATE", "high", "Response: host network isolation RELEASED",
+                      "Outbound connectivity restored. Per-peer C2 blocks (if any) remain "
+                      "in force until individually unblocked.",
+                      data={"rule": ISOLATE_RULE, "released": True})
+    return True, "isolation released — outbound restored"

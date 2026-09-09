@@ -42,7 +42,11 @@ STUB_WINDOW = b"\x0f\x05"
 RW_PROTECT = (0x04, 0x08)                     # PAGE_READWRITE, READWRITE+copy-on-write
 
 JIT_HOSTS = {"dotnet.exe", "java.exe", "javaw.exe", "node.exe", "deno.exe", "bun.exe",
-             "msbuild.exe", "w3wp.exe", "sqlservr.exe"}
+             "msbuild.exe", "w3wp.exe", "sqlservr.exe",
+             # browsers: V8/SpiderMonkey JIT pages are private executable
+             # memory full of incidental 0F 05 byte runs
+             "chrome.exe", "msedge.exe", "brave.exe", "opera.exe", "vivaldi.exe",
+             "firefox.exe", "electron.exe"}
 
 MAX_REGION = 0x100000                          # inspect up to 1 MB per region
 _regions = {}       # pid -> {(base, size, prot)} of private EXEC regions
@@ -120,30 +124,32 @@ def scan_process(pid, name, path):
                                    "shellcode, flip to RX - which deliberately never creates a "
                                    "suspicous RWX page. Caught at the flip itself.",
                                    pid, name, path, extra)
-                # syscall-stub scan inside the region
-                ofs = 0
-                while ofs < min(size, MAX_REGION):
-                    n = min(0x10000, size - ofs)
-                    if k32.ReadProcessMemory(h, ctypes.c_void_p(base + ofs), buf, n,
-                                             ctypes.byref(got)) and got.value > 2:
-                        chunk = buf.raw[:got.value]
-                        i = chunk.find(SYSCALL_STUB)
-                        if i == -1:
-                            j = chunk.find(STUB_WINDOW)
-                            if j != -1 and chunk[j:j + 8].count(b"\xc3"):
-                                i = j
-                        if i != -1:
-                            _alert("SYSCALL-STUB", "critical",
-                                   "Syscall stub in private memory: %s (pid %d) at %s" % (name, pid, hex(base + ofs + i)),
-                                   "The syscall instruction (0F 05) executes inside PRIVATE "
-                                   "executable memory. Legitimate syscall stubs exist only in the "
-                                   "mapped ntdll image - this is a direct/indirect syscall stub "
-                                   "(HellsGate / HalosGate / SysWhispers), the API-hook evasion "
-                                   "used by Havoc Demon and BOF loaders.",
-                                   pid, name, path,
-                                   {"base": hex(base + ofs + i), "size": size, "protect": hex(prot)})
-                            break
-                    ofs += n
+                # syscall-stub scan inside the region (JIT hosts are exempt:
+                # JIT code legitimately contains incidental 0F 05 byte runs)
+                if not jit:
+                    ofs = 0
+                    while ofs < min(size, MAX_REGION):
+                        n = min(0x10000, size - ofs)
+                        if k32.ReadProcessMemory(h, ctypes.c_void_p(base + ofs), buf, n,
+                                                 ctypes.byref(got)) and got.value > 2:
+                            chunk = buf.raw[:got.value]
+                            i = chunk.find(SYSCALL_STUB)
+                            if i == -1:
+                                j = chunk.find(STUB_WINDOW)
+                                if j != -1 and chunk[j:j + 8].count(b"\xc3"):
+                                    i = j
+                            if i != -1:
+                                _alert("SYSCALL-STUB", "critical",
+                                       "Syscall stub in private memory: %s (pid %d) at %s" % (name, pid, hex(base + ofs + i)),
+                                       "The syscall instruction (0F 05) executes inside PRIVATE "
+                                       "executable memory. Legitimate syscall stubs exist only in the "
+                                       "mapped ntdll image - this is a direct/indirect syscall stub "
+                                       "(HellsGate / HalosGate / SysWhispers), the API-hook evasion "
+                                       "used by Havoc Demon and BOF loaders.",
+                                       pid, name, path,
+                                       {"base": hex(base + ofs + i), "size": size, "protect": hex(prot)})
+                                break
+                        ofs += n
             addr = base + size
         # hollowed-image check: the exe's own base should be a mapped image
         if path and os.path.isfile(path):
@@ -169,13 +175,24 @@ def scan_process(pid, name, path):
     _rw_regions[pid] = cur_rw
     return findings
 
+_cycle = [0]           # round-robin cursor: every candidate gets scanned
+                        # eventually, not just the newest six forever
+
 def poll(limit=6, candidates=None):
+    import os as _os
+    _self = {_os.getpid(), _os.getppid() if hasattr(_os, "getppid") else None}
     if candidates is None:
         from . import modules as _mods
         candidates = [p for p in _mods._processes()
-                      if not (p[2] or "").lower().startswith(r"c:\windows")][:24]
+                      if not (p[2] or "").lower().startswith(r"c:\windows")
+                      and p[0] not in _self][:24]
+    if not candidates:
+        return 0
+    start = _cycle[0] % len(candidates)
+    ordered = candidates[start:] + candidates[:start]
+    _cycle[0] = start + limit      # next pass continues where this one stopped
     done = 0
-    for pid, name, path, *_ in candidates:
+    for pid, name, path, *_ in ordered[:limit]:
         if done >= limit:
             break
         scan_process(pid, name, path)

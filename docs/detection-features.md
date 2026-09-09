@@ -146,3 +146,69 @@ live repeatedly — see implementation report).
 - Kernel callbacks — needs a signed driver.
 - Per-peer ICMP attribution — needs the kernel trace.
 - Sleep-encrypted memory — needs wake-transition scanning (injection-based).
+
+## Implant correlation engine (the verdict layer)
+Commercial EDRs fuse many weak signals into one scored verdict per entity
+(SentinelOne Storyline, CrowdStrike IOA chaining). `edr/correlation.py` does
+the same transparently: every alert attaches to an ENTITY (binary path, else
+pid, else C2 peer), each rule carries a weight, and the summed evidence
+becomes a 0-99 confidence:
+
+- >= 85 **confirmed** (the Implants screen tier — "99% sure")
+- >= 60 **likely** | >= 35 suspicious | below: ignored
+
+Evidence weights (capped at 99, repeats add diminishing weight): beacon
+cadence 45/40/38 (net/dns/icmp), hollowing 45, cross-process handles 32,
+signature hit 50, RW->RX flip 30, ntdll tamper 30, unbacked RWX 28, LSASS
+28, thread hijack 30, unbacked threads 24, stubs 22, sideload/persistence
+15-22, lineage 10-15. The full weighted breakdown ships with every verdict.
+
+Entity lifecycle (persisted across sensor restarts in
+`edr/state/implant_status.json`): active -> monitoring | suspended |
+quarantined | killed | dismissed -> *-verified. Re-infection detection
+requires positive evidence (fresh alerts after the action + live pid +
+grace window) — pid liveness alone never resurrects a contained path
+(termination lag and pid recycling both produce false "alive").
+
+## Entity quarantine + containment verification
+`quarantine_entity` performs full containment in order: firewall-block every
+known C2 peer -> terminate the process TREE (spawners and injected children)
+-> vault the binary (deny-execute ACL + origin manifest + config extraction
+that auto-blocks extracted peers) -> persist the entity status.
+
+`verify_containment` re-checks reality before the UI shows "inactive":
+process gone | binary absent from origin | firewall rule present per peer |
+contained pids silent since the action. All pass -> status becomes
+`quarantined-verified` and the console shows **INACTIVE - contained**.
+
+## Host isolation + protect mode
+- **Isolate host** (Defender device-isolation semantics): one firewall rule
+  blocking ALL outbound. Loopback is exempt from Windows Firewall filtering,
+  so the console and sensors stay manageable. Release from the banner.
+- **Protect mode** (Detect-vs-Protect policy): when enabled, any entity
+  crossing the confirmed threshold is auto-quarantined off-thread. Default
+  OFF (manual triage).
+
+## Sensor hardening (from commercial gap analysis)
+- memmap/hooks round-robin rotation: long-running processes below the
+  newest-first fold are still reached (a 6-per-pass newest-only window was a
+  coverage gap for aged implants).
+- Sensors skip the EDR's own pid/parent (self-scanning produced SYSCALL-STUB
+  and RWX self-alerts).
+- JIT host allowlist extended to browsers (V8/SpiderMonkey JIT pages are
+  private-exec full of incidental 0F 05 runs) and the syscall-stub scan is
+  gated for JIT hosts.
+- Beacon cooldown keys always include the pid when present: two processes
+  beaconing the SAME C2 peer stay two entities (one channel, many implants).
+- Verdict-layer image allowlist: the system interpreter and blue-team console
+  paths never get crowned implant (sensors still alert; the verdict layer
+  refuses, with an info event).
+
+## Console (seven screens)
+Dashboard, Log Explorer, Alerts, Signatures, Threat Intel, Beacon Triage
+(per-beacon suspend/block/kill with cadence evidence) and **Implants**
+(correlated verdicts with confidence bars, status chips, evidence bundle,
+quarantine/tree-kill/suspend/block/verify/monitor/dismiss, host isolation,
+protect-mode toggle, containment log). Every rendered button is bound and
+has press + spring animations; a dead-button sweep guarantees no inert
+controls.
