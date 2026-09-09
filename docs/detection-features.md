@@ -212,3 +212,18 @@ quarantine/tree-kill/suspend/block/verify/monitor/dismiss, host isolation,
 protect-mode toggle, containment log). Every rendered button is bound and
 has press + spring animations; a dead-button sweep guarantees no inert
 controls.
+
+## Live category hit detail (Threat Intel and friends)
+`edr/category_hits.js` adds owned panels that answer "which detections are
+being hit, right now, per category":
+- **Threat Intel**: "detections by C2 framework — live" (Havoc/Demon,
+  Cobalt Strike, Mythic, Realm/imix, watershell-cpp — each rule mapped to
+  the tradecraft it detects) and "detections by attack stage — live"
+  (initial access → execution → persistence → defense evasion → credential
+  access → C2 → implant actions/lateral). Only FIRING rules are listed,
+  with hit counts and last-hit time; clicking a rule drills into its actual
+  recent alerts (time, title, pid/peer).
+- **Signatures**: "live detection alerts" feed — every rule that has fired,
+  newest first, severity-colored, click a row for its why-this-fired text.
+- **Dashboard**: "top detections firing" — ranked bars with hits and
+  last-hit time.
