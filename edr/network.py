@@ -124,7 +124,7 @@ def detect_beacons():
                                    {"pid": pid, "peer": peer, "interval": round(mean, 1),
                                     "jitter_cv": round(cv, 3), "obs": len(ts), "loopback": loop})
             state.stats["beacons"] += 1
-            state.raise_alert(
+            alert = state.raise_alert(
                 "NET-BEACON", "critical" if not loop else "high",
                 f"Periodic beacon: {peer}",
                 f"{len(ts)} connections from pid {pid} to {peer} at a near-constant "
@@ -132,3 +132,6 @@ def detect_beacons():
                 "Fixed-interval + jitter callback is the C2 profile of imix/Havoc/Beacon. "
                 + ("(lab loopback peer)" if loop else ""),
                 event=rec, data={"pid": pid, "peer": peer, "interval": round(mean, 1)})
+            if not loop:
+                from . import intel
+                intel.enrich_async(peer, alert)

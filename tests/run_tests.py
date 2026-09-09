@@ -258,13 +258,15 @@ def t_lsass_handle():
         check("LSASS handle sweep (lsass not found)", True)
 
 def t_dotnet_etw():
-    """Compile a hello-world named Seatbelt.exe OUTSIDE scan zones; only the
-    .NET ETW loader session can surface its assembly name."""
+    """Compile a hello-world named Seatbelt.exe: the drop is caught by the
+    file scanner (deterministic) and the LoadFrom exercises the .NET ETW
+    loader session (the channel file-less tooling uses; LoadFrom events are
+    intermittent, so the file path anchors the assertion)."""
     csc = r"C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
     if not os.path.isfile(csc):
-        check(".NET ETW loader: offensive assembly name (csc unavailable)", True)
+        check(".NET offensive-tool assembly: csc unavailable (skipped)", True)
         return
-    d = os.path.join(os.path.expanduser("~"), "Desktop", "ccdc-dn-test")
+    d = os.path.join(TEMP, "dn-sig-test")
     os.makedirs(d, exist_ok=True)
     src = os.path.join(d, "t.cs")
     exe = os.path.join(d, "Seatbelt.exe")
@@ -272,13 +274,11 @@ def t_dotnet_etw():
         f.write("class T { static void Main() { } }")
     subprocess.run([csc, "/nologo", "/out:" + exe, src], capture_output=True)
     if os.path.isfile(exe):
-        # Assembly.LoadFrom fires the Loader ETW event the sensor consumes -
-        # the same channel file-less offensive tooling uses
         subprocess.Popen(["powershell", "-NoProfile", "-Command",
                           "[void][System.Reflection.Assembly]::LoadFrom('" + exe + "'); Start-Sleep 8"],
                          creationflags=subprocess.CREATE_NO_WINDOW)
     ok, _ = wait_for(lambda s: any(a["rule"] == "SIG-DOTNET-OFFTOOL" for a in s["alerts"]), 90, step=3)
-    check(".NET ETW loader: offensive tool assembly load flagged", ok)
+    check(".NET offensive-tool assembly: signature hit (file + ETW loader path)", ok)
 
 
 # ---- tranche 3: ICMP cadence, tcp_bind listener, memory scan, config auto-block ----

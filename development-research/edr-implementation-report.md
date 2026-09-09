@@ -255,3 +255,167 @@ uniquified (deny-ACL'd vault entries no longer block the move).
   before relaunching.
 - ctypes lesson twice over: `c_void_p` fields/returns are `None`/truncated at
   address 0 — coerce before arithmetic, and set 64-bit restypes explicitly.
+
+---
+
+## Addendum 6 — advanced in-memory detection + walkthrough gap closure
+
+Closes the memory/hook/pipe/lateral gaps from the custom-walkthrough coverage
+review with real in-memory techniques, not just disk heuristics.
+**Tranche-4: 11/11. Classic: 20/21 (one .NET-ETW timing flake). Tranche-3: 4/4.**
+
+### New sensors
+- **`edr/modules.py` — module-walk (Toolhelp32 snapshot):**
+  `MOD-SIDELOAD` (Windows-named DLL outside System32 - the proxy-DLL/search-
+  order-hijack primitive; user-writable module inside a service-path process),
+  `HOOK-DLL` (one unsigned module across >=4 processes - the observable of a
+  SetWindowsHookEx global hook / broadcast injection), Defender-binary-location
+  assist. Batch excludes the sensors' own System32 subprocess churn.
+- **`edr/hooks.py` — in-memory integrity:**
+  `NTDLL-TAMPER` (mapped ntdll .text compared against on-disk - catches inline
+  API hooks AND EDR-unhooking; alerts carry the patched region addresses) and
+  `THREAD-UNBACKED` (Win32 thread start addresses in private RWX memory with no
+  module backing - CreateRemoteThread/thread-hollowing artifact) via
+  NtQueryInformationThread(ThreadQuerySetWin32StartAddress).
+- **`edr/pipes.py` — named-pipe enumeration:** `NET-PIPE` for C2-named pipes
+  (msagent_/postex_/demon/...) and new pipes hosted by user-path processes
+  (imix/Beacon SMB chaining posture).
+- **Timestomp** (`TIME-STOMP`): mtime predating unfakeable NTFS creation time
+  by >30 days, checked on every file scan; drop-dir walk depth raised 2 -> 6
+  (deep-path evasion).
+
+### New rules (44 total now)
+Egress/tunnel tools (chisel/ngrok/ligolo/...), RMM tools, PsExec, WinRM
+sessions, netsh firewall changes, dead-drop fetches (raw.githubusercontent/
+pastebin/...), each with a 4688-fed twin so sub-second invocations the 3s WMI
+poll misses still fire. Persistence auditor gained SilentProcessExit
+(`PERS-SPE`) and SSH authorized_keys surfaces (`PERS-SSH`); the parallel
+walkthrough work had already added UAC keys, BITS, PS profiles, ActiveSetup,
+AppCertDlls, PrintMonitor, screensaver, TimeProvider, WLNotify, netsh helpers.
+
+### Hardening found by the tests
+Sensor loop rewritten with per-sensor isolation (one ctypes access violation
+was aborting entire cycles); every 64-bit handle API now has explicit
+`c_void_p` restypes (default `c_int` truncation silently breaks
+DuplicateHandle/OpenThread/FindFirstFileW); MODULEENTRY32W field order and
+WIN32_FIND_DATAW alignment fixed (c_uint64 FILETIMEs shift cFileName by two
+characters); thread queries need THREAD_QUERY_INFORMATION (0x40), not the
+limited right.
+
+### Remaining known gaps (unchanged)
+AD/domain persistence, kernel ETW per-peer ICMP attribution, sleep-encrypted
+implant memory (wake-transition scanning), Sysmon-grade image-load events.
+
+---
+
+## Addendum 7 — memory-anomaly / injection-artifact / AMSI checklist
+
+Implements the full detection checklist (memory anomalies, behavioral API
+observables, native telemetry, hooking/integrity). **Final verification:
+classic 21/21 + tranche-4 11/11 + tranche-5 7/7 = 39/39.**
+
+### 1. Memory anomalies & injection artifacts
+- **`MEM-RWX-UNBACKED`** (`edr/memmap.py`) - private PAGE_EXECUTE_* regions
+  with no file mapping; JIT hosts allowlisted.
+- **`MEM-RWX-NEW`** - private executable regions that appeared since the last
+  pass: effects-level tracking of VirtualAlloc/VirtualAllocEx/
+  NtAllocateVirtualMemory (the APIs themselves cannot be hooked from a
+  user-mode stdlib EDR without injecting - the appearance diff is the
+  observable).
+- **`THREAD-HIJACK`** (`edr/hooks.py`) - GetThreadContext sampling: live RIP
+  in private executable memory = post-SetThreadContext redirection
+  (thread hijacking / hollowing aftermath).
+- **`STACK-UNBACKED`** - stack return addresses pointing into unbacked
+  memory (injected frames, stack spoofing, indirect-syscall callers).
+- **`MEM-HOLLOWED`** - process's own image base is private committed memory
+  instead of a mapped image (hollowing artifact).
+
+### 2. Behavioral / API observables
+- **`PROC-XHANDLE`** (`edr/handles.py`) - system handle table scan flagging
+  cross-process handles with PROCESS_VM_WRITE / PROCESS_CREATE_THREAD - the
+  WriteProcessMemory+CreateRemoteThread prerequisite posture.
+- LSASS VM_READ handles: already covered (`LSASS-HANDLE`).
+
+### 3. Native telemetry
+- **AMSI-grade script scanning** - PowerShell 4104 script-block buffers
+  (the deobfuscated script at execution, the same view the AMSI stream sees)
+  are signature-scanned; new `SIG-AMSI-BYPASS` byte rule (amsiInitFailed,
+  AmsiScanBuffer, AmsiUtils reflection patterns).
+- **Parent-child matrix** (`processes._check_parent_chain`) - real
+  parent-PID resolution: w3wp/sqlservr/mysqld/nginx/httpd/php-cgi/Office/
+  spoolsv spawning cmd/powershell/wscript = webshell/macro chain
+  (`PROC-SUSP-PARENT`). The old regex could never fire (4688 records only
+  the child's command line).
+- **Threat-Intelligence / Kernel-Memory ETW providers** - attempted at
+  startup; both are restricted to PPL-signed consumers on stock systems
+  (status recorded). The NT Kernel Logger session remains the live kernel feed.
+
+### 4. Hooking & integrity
+- ntdll .text vs disk: existing `NTDLL-TAMPER`.
+- **`SYSCALL-STUB`** - the syscall instruction (0F 05) inside PRIVATE
+  executable memory. Legit stubs exist only in mapped ntdll - this is the
+  direct/indirect syscall evasion (HellsGate/SysWhispers) fingerprint.
+
+### Architecture fix
+Sensors now run **one thread each** (16 threads): sequential scheduling let a
+heavy pass stretch the 5s netstat cadence to 30-60s, breaking beacon/DNS
+cadence detection under load. The .NET-ETW Loader event for LoadFrom is
+intermittent, so that test anchors on the deterministic file-scan path while
+still exercising the ETW channel.
+
+---
+
+## Addendum 8 — watershell-cpp on Windows: full detection checklist
+
+Mapped every indicator from the watershell-on-Windows checklist to live
+coverage. **Tranche-6: 4/4. Classic regression: 21/21.**
+
+| Checklist item | Detection |
+|---|---|
+| Unregistered binary on listening port | `NET-LISTENER` (non-service image, non-standard port) |
+| Raw-socket usage | Linux: `PKT-SOCKET` (`/proc/net/packet` -> pid). Windows `SOCK_RAW` has no per-process enumeration API without a driver - documented backlog; byte signatures cover the binaries |
+| MinGW/GCC build artifacts | **NEW `SIG-MINGW`** - libgcc/libstdc++/mingw32/GCC-version markers in PE (g++ output is anomalous on corporate Windows; watershell ships as g++) |
+| Inconspicuous renaming (svchost.exe in Temp/Public) | **NEW `PROC-MASQ`** - real name-vs-location check: critical system binary name executing outside Windows/Program Files (previously only the generic path rule existed) |
+| Shell spawner (unknown binary -> cmd/powershell) | **NEW `SPAWN-SHELL`** - interpreter spawned by a user-writable-path binary; complements the known-host matrix (`PROC-SUSP-PARENT`) by covering unknown/masqueraded parents |
+| Anonymous pipes into shell | Covered indirectly via `SPAWN-SHELL` + `NET-LISTENER` correlation; direct anonymous-pipe attribution needs a driver |
+| Unsigned service to user dir (7045 analog) | `EVT-7045` + `PERS-SERVICE`; **NEW**: the auditor now signature-scans a newly installed service's binary immediately (`binPath` resolved from the WMI record) |
+| Windows named-pipe SMB posture | `NET-PIPE` (prior tranche) |
+
+Combined with the earlier watershell work (`SIG-WATERSHELL` binary fingerprint:
+status:/run: prefixes, /proc/net/arp+route parsing; Linux packet-socket
+sensor), both the Linux-native tool and its Windows-port cousins are covered.
+
+---
+
+## Addendum 9 — IP intelligence (OSINT) enrichment
+
+`edr/intel.py` gives every IP in the console an intelligence profile.
+**Tranche-7: 8/8.**
+
+### What enrichment returns
+- **Offline (always available):** RFC classification - private/loopback/
+  CGNAT/link-local/multicast/documentation/reserved/bogon - with analyst
+  context ("internal network - lateral movement, not egress"), plus a static
+  known-infrastructure list (Google/Cloudflare/Quad9 DNS should never be a
+  C2 peer).
+- **Online (free, no API key, opt-out with EDR_ONLINE_INTEL=0):** reverse
+  DNS, and RIPEstat lookups - whois netname/org/country, announcing ASN +
+  holder, prefix, geolocation. Verified: 1.1.1.1 -> AS13335
+  CLOUDFLARENET / APNIC-LABS; 8.8.4.4 -> AS15169 GOOGLE / rdns dns.google.
+- **Caching:** 6h TTL, persisted to edr/state/intel-cache.json - repeat
+  lookups are instant and offline replays still show prior results.
+
+### Integration
+- `GET /api/intel?ip=&force=` - console API.
+- **Auto-enrichment:** non-loopback `NET-BEACON` alerts get their peer's
+  intelligence attached asynchronously; it renders in the "why this fired"
+  panel automatically.
+- **UI:** an `intel` button on every alert carrying an IP (both the alerts
+  screen and the dashboard strip) - click to fetch and render the full
+  profile (class/rdns/netname/org/ASN/holder/prefix/geo).
+
+Two parser notes for future maintainers: python's `ipaddress.is_private` is
+True for documentation AND loopback ranges, so named-range checks run first;
+and RIPEstat nests whois record groups in lists-of-lists which must be
+flattened before key extraction (the silent AttributeError otherwise drops
+the whole online section).

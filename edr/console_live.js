@@ -324,15 +324,44 @@
 
     var actions = panel("response actions", { grow: "0 0 auto" });
     var arow = mk("div", "lv-acts");
+    var auditResult = mk("div", "lv-mut");
+    auditResult.style.cssText = "min-height:16px;padding:4px 0 0;font:11.5px var(--mono)";
     [["Run persistence audit", "primary", "/api/audit"],
      ["Force signature scan", "", "/api/scan"],
      ["Re-baseline", "danger", "/api/baseline"]].forEach(function (a) {
       arow.appendChild(btn(a[0], a[1], function () {
         if (a[2] === "/api/baseline" && !confirm("Re-arm the persistence baseline at the CURRENT machine state? Anything already present becomes trusted.")) return;
-        getJSON(a[2], 1, {}).then(tick);
+        var buttons = arow.querySelectorAll("button");
+        for (var i = 0; i < buttons.length; i++) buttons[i].disabled = true;
+        auditResult.style.color = "var(--fg4)";
+        auditResult.textContent = "running " + a[0].toLowerCase() + " …";
+        getJSON(a[2], 1, {}).then(function (r) {
+          for (var i = 0; i < buttons.length; i++) buttons[i].disabled = false;
+          if (a[2] === "/api/audit") {
+            var n = (r.findings || []).length;
+            auditResult.style.color = n ? "#FF9966" : "#72CA9B";
+            auditResult.textContent = n
+              ? "audit complete — " + n + " NEW finding" + (n > 1 ? "s" : "") + ": " +
+                r.findings.slice(0, 4).map(function (f) { return f[3]; }).join(" | ") +
+                (n > 4 ? " +" + (n - 4) + " more" : "")
+              : "audit complete — clean, no new persistence artifacts";
+          } else if (a[2] === "/api/scan") {
+            auditResult.style.color = "#72CA9B";
+            auditResult.textContent = "scan complete — " + (r.files_considered || 0) + " files checked";
+          } else {
+            auditResult.style.color = "#72CA9B";
+            auditResult.textContent = "baseline re-armed at current machine state";
+          }
+          tick();
+        }).catch(function () {
+          for (var i = 0; i < buttons.length; i++) buttons[i].disabled = false;
+          auditResult.style.color = "#FF9966";
+          auditResult.textContent = a[0] + " FAILED";
+        });
       }));
     });
     actions._body.appendChild(arow);
+    actions._body.appendChild(auditResult);
     actions._body.appendChild(mk("div", "lv-mut",
       "Audit diffs run keys, services, tasks, startup, WMI. Scan re-checks drop zones. Re-baseline resets the persistence T0."));
     right.appendChild(actions);
@@ -356,6 +385,22 @@
       }
       if (d.pid) add("kill " + d.pid, "#A82A2A", { action: "kill", pid: d.pid });
       if (d.peer) add("block", "#935610", { action: "block", peer: d.peer });
+      var ip = /^\d+\.\d+\.\d+\.\d+$/.test(d.peer || "") ? d.peer :
+               (/^\d+\.\d+\.\d+\.\d+$/.test(d.ip || "") ? d.ip : null);
+      if (ip) {
+        var ib = mk("button", "lv-actbtn", "intel");
+        ib.style.color = "#fff"; ib.style.background = "#2D5D9B";
+        ib.onclick = function (e) {
+          e.stopPropagation();
+          ib.textContent = "…";
+          getJSON("/api/intel?ip=" + encodeURIComponent(ip)).then(function (inf) {
+            ib.textContent = inf && inf["class"] ? inf["class"].split(" ")[0] : "?";
+            ib.style.background = "#1C6E42";
+            ib.title = JSON.stringify(inf);   // dashboard strip: tooltip only
+          }).catch(function () { ib.textContent = "✗"; });
+        };
+        box.appendChild(ib);
+      }
       var path = d.path || (ev.data && ev.data.path);
       if (path && /SIG-|IMPLANT|TEMP|WEBSHELL/.test(a.rule)) add("quarantine", "#634DBF", { action: "quarantine", path: path });
       return box;
@@ -576,12 +621,31 @@
       var d = mk("pre"); d.style.cssText = "margin:0;font:11px var(--mono);color:#cdd2d8;white-space:pre-wrap;background:var(--well);padding:9px;border:1px solid var(--line);border-radius:2px";
       d.textContent = JSON.stringify(a.data || {}, null, 2);
       whyP._body.appendChild(d);
+      if (a.data && a.data.intel) renderIntel(a.data.intel);
       if (a.event) {
         whyP._body.appendChild(mk("div", "lv-sub", "source event"));
         var r = mk("pre"); r.style.cssText = "margin:0;font:10.5px var(--mono);color:var(--fg4);white-space:pre-wrap";
         r.textContent = JSON.stringify(a.event, null, 2);
         whyP._body.appendChild(r);
       }
+    }
+
+    function renderIntel(inf) {
+      whyP._body.appendChild(mk("div", "lv-sub", "IP intelligence"));
+      var box = mk("div");
+      box.style.cssText = "display:grid;grid-template-columns:120px 1fr;gap:3px 10px;" +
+        "font:11.5px var(--mono);color:var(--fg2);background:var(--well);" +
+        "border:1px solid var(--line);border-radius:2px;padding:9px";
+      [["class", inf["class"]], ["rdns", inf.rdns], ["netname", inf.netname],
+       ["org", inf.descr || inf["org-name"] || inf.org], ["country", inf.country],
+       ["asn", inf.asn], ["holder", inf.asn_holder], ["prefix", inf.prefix],
+       ["geo", inf.geo], ["known", inf.known_infra]].forEach(function (kv) {
+        if (kv[1] == null) return;
+        var k = mk("div", null, kv[0]); k.style.color = "var(--fg4)";
+        var v = mk("div", null, String(kv[1])); v.style.wordBreak = "break-all";
+        box.appendChild(k); box.appendChild(v);
+      });
+      whyP._body.appendChild(box);
     }
 
     function statusPill(status) {
@@ -608,6 +672,22 @@
       }
       if (d.pid) add("kill " + d.pid, "#A82A2A", { action: "kill", pid: d.pid });
       if (d.peer) add("block", "#935610", { action: "block", peer: d.peer });
+      var ip = /^\d+\.\d+\.\d+\.\d+$/.test(d.peer || "") ? d.peer :
+               (/^\d+\.\d+\.\d+\.\d+$/.test(d.ip || "") ? d.ip : null);
+      if (ip) {
+        var ib = mk("button", "lv-actbtn", "intel");
+        ib.style.color = "#fff"; ib.style.background = "#2D5D9B";
+        ib.onclick = function (e) {
+          e.stopPropagation();
+          ib.textContent = "…";
+          getJSON("/api/intel?ip=" + encodeURIComponent(ip)).then(function (inf) {
+            ib.textContent = inf && inf["class"] ? inf["class"].split(" ")[0] : "?";
+            ib.style.background = "#1C6E42";
+            renderIntel(inf);
+          }).catch(function () { ib.textContent = "✗"; });
+        };
+        box.appendChild(ib);
+      }
       var path = d.path || (ev.data && ev.data.path);
       if (path && /SIG-|IMPLANT|TEMP|WEBSHELL/.test(a.rule)) add("quarantine", "#634DBF", { action: "quarantine", path: path });
       return box;
