@@ -463,3 +463,28 @@ Known issue: the tranche-5 PROC-XHANDLE test flakes via a handle-table
 snapshot race (detector proven live repeatedly; the sweep now fast-aborts
 when the Process-type index can't be verified to keep its cadence).
 Docs: `docs/reducing-false-positives.md`, `docs/detection-features.md`.
+
+---
+
+## Addendum 12 — Beacon Triage screen + process suspension
+
+New sixth console screen (same design system, `edr/beacon_triage.js`):
+- **Beacon list** — every NET/DNS/ICMP-BEACON alert plus live cadence
+  series, with peer/interval/pid/type.
+- **Cadence evidence** — interval, sample gaps, alert time, attached or
+  on-demand OSINT enrichment.
+- **Containment decisions** per beacon: **Suspend** (NtSuspendProcess — the
+  beacon stops communicating, nothing is deleted, full memory preserved for
+  forensics), **Resume**, **Block egress** (firewall, process keeps
+  running), **Unblock**, **Kill** (guardrailed), **Monitor only (ack)**,
+  **Resolve**.
+- **Decision log** — response history (RESP-* alerts).
+
+New responder actions `suspend`/`resume` share the kill guardrails
+(EDR-self, critical system processes, protected image paths refused).
+Verified live: suspend→resume on a test process, lsass refusal, UI
+selection→actions→animation in-browser, screenshot review.
+
+**Click animations**: all buttons console-wide get a press
+(translate+scale+brightness) and a spring "pop" keyframe via delegated
+listener — verified applied in-browser.

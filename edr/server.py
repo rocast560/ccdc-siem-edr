@@ -108,9 +108,14 @@ class Handler(BaseHTTPRequestHandler):
         if u.path in ("/", "/console", "/index.html"):
             with open(CONSOLE, "rb") as f:
                 html = f.read()
-            with open(LIVEJS, "rb") as f:
-                js = f.read()
-            html = html.replace(b"</body>", b"<script>" + js + b"</script></body>", 1)
+            inject = b""
+            for jsfile in (LIVEJS, os.path.join(HERE, "beacon_triage.js")):
+                try:
+                    with open(jsfile, "rb") as f:
+                        inject += b"<script>" + f.read() + b"</script>"
+                except OSError:
+                    pass
+            html = html.replace(b"</body>", inject + b"</body>", 1)
             self._send(200, html, "text/html; charset=utf-8")
         elif u.path == "/api/state":
             snap = state.snapshot(limit=100, alerts_limit=1000)
@@ -180,6 +185,10 @@ class Handler(BaseHTTPRequestHandler):
             action = body.get("action")
             if action == "kill":
                 ok, msg = responder.kill_process(body.get("pid"))
+            elif action == "suspend":
+                ok, msg = responder.suspend_process(body.get("pid"))
+            elif action == "resume":
+                ok, msg = responder.resume_process(body.get("pid"))
             elif action == "quarantine":
                 ok, msg = responder.quarantine_file(body.get("path"))
             elif action == "block":
