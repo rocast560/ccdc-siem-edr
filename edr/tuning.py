@@ -58,12 +58,16 @@ _recent = {}              # (rule, key) -> alert dict
 def cooldown_key(rule_id, data):
     d = data or {}
     # entity-specific identifiers first; a bare path is shared by every child
-    # of the same interpreter, so it only counts when combined with the pid
+    # of the same interpreter, so it only counts when combined with the pid.
+    # IMPORTANT: a present pid ALWAYS joins the key — two different processes
+    # beaconing the SAME C2 peer are two entities (one channel, many implants);
+    # collapsing them on the peer alone would hide attribution
+    if d.get("pid") is not None:
+        peer = d.get("peer") or d.get("pipe") or d.get("port") or ""
+        return (rule_id, "pid:%s:%s:%s" % (d["pid"], peer, d.get("path", "")))
     for k in ("pipe", "peer", "service", "assembly", "port"):
         if d.get(k) is not None:
             return (rule_id, "%s:%s" % (k, d[k]))
-    if d.get("pid") is not None:
-        return (rule_id, "pid:%s:%s" % (d["pid"], d.get("path", "")))
     return (rule_id, str(sorted(d.items()))[:80])
 
 def repeat_or_none(rule_id, data):

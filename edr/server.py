@@ -9,7 +9,7 @@ from urllib.parse import urlparse, parse_qs
 
 from . import (state, rules, signatures, persistence, processes, eventlog, network,
                responder, lsass, dotnet, dnsbeacon, linux_sensor, icmp, memscan,
-               modules, hooks, pipes, memmap, handles, intel)
+               modules, hooks, pipes, memmap, handles, intel, correlation)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -109,7 +109,8 @@ class Handler(BaseHTTPRequestHandler):
             with open(CONSOLE, "rb") as f:
                 html = f.read()
             inject = b""
-            for jsfile in (LIVEJS, os.path.join(HERE, "beacon_triage.js")):
+            for jsfile in (LIVEJS, os.path.join(HERE, "beacon_triage.js"),
+                           os.path.join(HERE, "implants.js")):
                 try:
                     with open(jsfile, "rb") as f:
                         inject += b"<script>" + f.read() + b"</script>"
@@ -139,6 +140,8 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(200, list(state.scans)[-200:])
         elif u.path == "/api/cadence":
             self._send(200, network.cadence_snapshot())
+        elif u.path == "/api/implants":
+            self._send(200, correlation.compute())
         elif u.path == "/api/intel":
             ip = (q.get("ip") or [""])[0]
             if not ip:
@@ -195,9 +198,36 @@ class Handler(BaseHTTPRequestHandler):
                 ok, msg = responder.block_ip(body.get("peer"))
             elif action == "unblock":
                 ok, msg = responder.unblock_ip(body.get("peer"))
+            elif action == "quarantine_entity":
+                ok, msg = responder.quarantine_entity(body.get("pid"),
+                                                      peers=body.get("peers"),
+                                                      path=body.get("path"))
+            elif action == "kill_tree":
+                ok, msg = responder.kill_tree(body.get("pid"))
+            elif action == "isolate":
+                ok, msg = responder.isolate_host()
+            elif action == "release":
+                ok, msg = responder.release_host()
+            elif action == "entity_status":
+                ok, msg = responder.set_entity_status(body.get("key"),
+                                                      body.get("status") or "monitoring")
+            elif action == "protect":
+                state.protect_mode = bool(body.get("enabled", True))
+                state.norm_event("responder", "audit", "high",
+                                 "Protect mode " + ("enabled — confirmed implants auto-quarantined"
+                                                    if state.protect_mode else "disabled"),
+                                 {"protect_mode": state.protect_mode})
+                self._send(200, {"ok": True, "protect_mode": state.protect_mode})
+                return
             else:
                 ok, msg = False, "unknown action"
             self._send(200, {"ok": ok, "message": msg})
+        elif u.path == "/api/implants/verify":
+            key = body.get("key")
+            if not key:
+                self._send(400, {"error": "key required"})
+                return
+            self._send(200, correlation.verify_containment(key))
         else:
             self._send(404, {"error": "not found"})
 

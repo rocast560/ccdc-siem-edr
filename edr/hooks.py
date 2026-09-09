@@ -268,14 +268,27 @@ def check_threads(pid, name, path, h):
                           "executing outside ntdll.",
                           event=rec, data={"pid": pid, "path": path})
 
+_cycle = [0]           # round-robin cursor: long-running processes below the
+                        # newest-first fold still get their turn eventually
+
 def poll(limit=8):
-    """Check newest non-system-noise processes (interpreters like python ARE
+    """Check non-system-noise processes (interpreters like python ARE
     candidates - they host injected code - unlike memscan's disk-drop focus)."""
+    import os as _os
     from . import modules as _mods
+    _self = {_os.getpid(), _os.getppid() if hasattr(_os, "getppid") else None}
     procs = [p for p in _mods._processes()
-             if not (p[2] or "").lower().startswith(r"c:\windows")]
+             if not (p[2] or "").lower().startswith(r"c:\windows")
+             and p[0] not in _self]
+    if not procs:
+        return
+    # rotate through the whole list instead of re-considering the newest pids
+    # forever (a long-running implant would otherwise never be reached)
+    start = _cycle[0] % len(procs)
+    ordered = procs[start:] + procs[:start]
+    _cycle[0] = start + limit
     done = 0
-    for pid, name, path, _cdate in procs:
+    for pid, name, path, _cdate in ordered:
         if pid in _checked or done >= limit:
             continue
         h = k32.OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, False, pid)
