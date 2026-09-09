@@ -197,7 +197,7 @@
     rows.forEach(function (r) {
       var sel = selected && selected.key === r.key;
       var row = mk("div", "lv-row click");
-      if (sel) { row.style.background = "rgba(91,163,208,.12)"; row.style.boxShadow = "inset 2px 0 0 var(--blue4)"; }
+      if (sel) { row.style.background = "rgba(78,166,209,.12)"; row.style.boxShadow = "inset 2px 0 0 var(--blue4)"; }
       var dot = mk("span", "lv-dot");
       dot.style.background = sevColor(r.rule === "NET-BEACON" ? "critical" : "high");
       var peer = mk("span", null, String(r.peer));
