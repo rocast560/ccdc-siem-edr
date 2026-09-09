@@ -138,7 +138,10 @@ def poll():
             if not any(mp.startswith(s) for s in SERVICE_IMG):
                 _module_pids.setdefault(mp, set()).add(pid)
     # hook-DLL correlation pass
+    from . import tuning
     for mp, pids in _module_pids.items():
+        if not tuning.hookdll_is_suspicious(mp):
+            continue      # Microsoft-managed / non-writable paths: legit shared DLLs
         if len(pids) >= HOOK_THRESHOLD and ("HOOK-DLL", 0, mp) not in _alerted:
             _alert("HOOK-DLL", "critical",
                    f"Module loaded into {len(pids)} processes: {mp}",

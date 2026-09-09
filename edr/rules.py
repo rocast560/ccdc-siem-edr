@@ -182,9 +182,13 @@ def evaluate(rec):
 
     The persistence auditor and file scanner raise their own dedicated alerts,
     so their events are skipped here to avoid double-firing. Rules toggled off
-    in the console are skipped.
+    in the console are skipped, and the EDR's own sensor subprocess command
+    lines are excluded (the single largest false-positive source otherwise).
     """
     if rec.get("source") in ("auditor", "filescan"):
+        return []
+    from . import tuning
+    if tuning.is_sensor_noise(rec.get("data", {}).get("cmdline", "")):
         return []
     hits = []
     for rule, rx in _compiled:

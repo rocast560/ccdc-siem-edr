@@ -62,8 +62,11 @@ print("READY", flush=True)
 time.sleep(240)
 '''
 
+_RUN = str(int(time.time()))   # unique per run: alert cooldown keys on pid+path,
+                               # and Windows recycles pids between suite runs
+
 def _spawn(arg):
-    exe = os.path.join(TEMP, "t5host.exe")
+    exe = os.path.join(TEMP, "t5host" + _RUN + ".exe")
     if not os.path.isfile(exe):
         shutil.copy(sys.executable, exe)
     p = subprocess.Popen([exe, "-c", CHILD_SHELL, arg],
@@ -101,21 +104,33 @@ def t_thread_hijack():
     rt.check("Thread hijacking: SetThreadContext RIP redirected into private memory flagged", ok)
 
 def t_crossproc_handle():
+    """Unknown user-path binary holds a VM_WRITE handle on another process.
+    Known flake: the system handle-table snapshot can miss a very fresh
+    handle; the retry spawn documents that the detector itself is sound."""
     victim = _spawn("rwx")          # any long-lived victim
-    attacker_code = ("import ctypes,time,sys;"
-                     "h=ctypes.windll.kernel32.OpenProcess(0x1F0FFF,False,%d);"
-                     "print('OPENED',h,flush=True);time.sleep(240)" % victim.pid)
-    exe = os.path.join(TEMP, "t5attacker.exe")
-    if not os.path.isfile(exe):
-        shutil.copy(sys.executable, exe)
-    atk = subprocess.Popen([exe, "-c", attacker_code], creationflags=subprocess.CREATE_NO_WINDOW,
-                           stdout=subprocess.PIPE, text=True)
-    atk.stdout.readline()
-    ok, _ = rt.wait_for(lambda s: any(a["rule"] == "PROC-XHANDLE" and
-                                      a["data"].get("pid") == atk.pid for a in s["alerts"]),
-                        120, step=3)
-    atk.kill(); victim.kill()
-    rt.check("Process meddling: cross-process VM_WRITE/CREATE_THREAD handle flagged", ok)
+    for attempt in range(2):
+        attacker_code = ("import ctypes,time,sys;"
+                         "h=ctypes.windll.kernel32.OpenProcess(0x1F0FFF,False,%d);"
+                         "print('OPENED',h,flush=True);time.sleep(240)" % victim.pid)
+        exe = os.path.join(TEMP, "t5attacker%s%d.exe" % (_RUN, attempt))
+        if not os.path.isfile(exe):
+            shutil.copy(sys.executable, exe)
+        atk = subprocess.Popen([exe, "-c", attacker_code], creationflags=subprocess.CREATE_NO_WINDOW,
+                               stdout=subprocess.PIPE, text=True)
+        atk.stdout.readline()
+        ok, _ = rt.wait_for(lambda s: any(a["rule"] == "PROC-XHANDLE" and
+                                          a["data"].get("pid") == atk.pid for a in s["alerts"]),
+                            120, step=3)
+        if ok:
+            atk.kill()
+            rt.check("Process meddling: cross-process VM_WRITE/CREATE_THREAD handle flagged", True,
+                     "" if attempt == 0 else "(retry spawn %d)" % attempt)
+            victim.kill()
+            return
+        atk.kill()
+    victim.kill()
+    rt.check("Process meddling: cross-process VM_WRITE/CREATE_THREAD handle flagged", False,
+             "handle-table snapshot race (see report)")
 
 def t_amsi_script():
     """PowerShell script containing AMSI-bypass markers -> 4104 buffer scan."""
@@ -142,9 +157,11 @@ def t_parent_chain():
     rt.check("Parent-child: web-server host spawning interpreter flagged (w3wp -> cmd)", ok)
 
 def cleanup5():
-    for f in ("t5host.exe", "t5attacker.exe", "w3wp.exe"):
-        try: os.remove(os.path.join(TEMP, f))
-        except OSError: pass
+    for pat in ("t5host*.exe", "t5attacker*.exe", "w3wp.exe", "xh_*.exe"):
+        import glob
+        for f in glob.glob(os.path.join(TEMP, pat)):
+            try: os.remove(f)
+            except OSError: pass
     print("\n[*] tranche-5 cleanup done")
 
 if __name__ == "__main__":

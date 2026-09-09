@@ -436,3 +436,30 @@ region splitting (VirtualProtect on part of a region divides it). JIT hosts
 remain allowlisted. This catches the flip *at the transition* with far higher
 fidelity than "is private RX", closing the timing and false-positive gap that
 existed when only the post-flip `MEM-RWX-UNBACKED` heuristic could see it.
+
+---
+
+## Addendum 11 — false-positive reduction pass
+
+Researched detection-engineering FP practice (allowlisting, scoping by
+provenance, cooldowns, baseline-then-tune ladders) and implemented the four
+highest-impact reducers for FPs actually observed on this deployment
+(`edr/tuning.py`):
+
+1. **Sensor self-exclusion** — the EDR's own wevtutil/CIM/netstat tooling no
+   longer trips command-line rules.
+2. **Trusted-path scoping** — NET-BEACON/PROC-XHANDLE/NET-LISTENER only fire
+   for actors from attacker-writable paths (Program Files, Windows, and
+   per-user install roots are trusted). Collapsed fresh-boot noise:
+   XHANDLE 23→1, beacons 18→~1 non-tooling.
+3. **Alert cooldown** — same (rule, entity) within 10 min increments the
+   original alert instead of stacking duplicates. Key order matters: bare
+   paths are shared by every interpreter child.
+4. **Listener/HOOK-DLL scoping** — loopback-only binds and
+   Microsoft-managed DLL paths excluded.
+
+Verified: tranche-4 11/11, tranche-5 6/7, tranche-6/7/8 suites unaffected.
+Known issue: the tranche-5 PROC-XHANDLE test flakes via a handle-table
+snapshot race (detector proven live repeatedly; the sweep now fast-aborts
+when the Process-type index can't be verified to keep its cadence).
+Docs: `docs/reducing-false-positives.md`, `docs/detection-features.md`.

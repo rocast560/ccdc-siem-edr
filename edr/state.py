@@ -43,6 +43,13 @@ def norm_event(source, kind, severity, title, data):
         return rec
 
 def raise_alert(rule_id, severity, title, why, event=None, data=None):
+    from . import tuning
+    data = data or {}
+    # cooldown: same (rule, entity) within 10 min increments the original
+    # alert instead of stacking a duplicate
+    prior = tuning.repeat_or_none(rule_id, data)
+    if prior is not None:
+        return prior
     with LOCK:
         _seq[0] += 1
         a = {
@@ -53,12 +60,13 @@ def raise_alert(rule_id, severity, title, why, event=None, data=None):
             "title": title,
             "why": why,               # "why this fired" panel payload
             "event": event,
-            "data": data or {},
+            "data": data,
             "status": "new",
         }
         alerts.append(a)
         stats["alerts_total"] += 1
         rule_hits[rule_id] = rule_hits.get(rule_id, 0) + 1
+        tuning.remember(rule_id, data, a)
         return a
 
 def set_alert_status(alert_id, status):
