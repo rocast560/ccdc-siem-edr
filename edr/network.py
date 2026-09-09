@@ -39,6 +39,7 @@ def check_listeners():
         if port in KNOWN_SERVICE_PORTS or (pid, port) in _listeners or pid in (0, 4):
             continue
         _listeners[(pid, port)] = True
+        bind = parts[1].rsplit(":", 1)[0]
         out = subprocess.run(["powershell", "-NoProfile", "-Command",
                               "Get-CimInstance Win32_Process -Filter 'ProcessId=%d' | "
                               "Select-Object Name,ExecutablePath | ConvertTo-Json -Compress" % pid],
@@ -52,6 +53,9 @@ def check_listeners():
         path = ((info or {}).get("ExecutablePath") or "").lower()
         if any(path.startswith(p) for p in SERVICE_IMG_PREFIXES if p):
             continue                        # signed/installed service binary
+        from . import tuning
+        if tuning.listener_is_fp(path, name, bind):
+            continue                        # loopback-only dev server / allowlisted tool
         rec = state.norm_event("network", "network", "high",
                                "Non-service listener: %s (pid %d) on port %d" % (name, pid, port),
                                {"pid": pid, "peer": "0.0.0.0:%d" % port, "port": port,
@@ -105,6 +109,21 @@ def cadence_snapshot():
                         "gaps": gaps})
     return out
 
+TRUSTED_IMG_PREFIXES = (r"c:\windows", r"c:\program files", r"c:\program files (x86)")
+TRUSTED_IMG_INFIXES = ("\\appdata\\local\\microsoft\\", "\\appdata\\local\\programs\\")
+
+def _pid_image(pid):
+    """Best-effort image path for a pid (cached)."""
+    if pid in _pid_path_cache:
+        return _pid_path_cache[pid]
+    out = subprocess.run(["powershell", "-NoProfile", "-Command",
+                          "(Get-CimInstance Win32_Process -Filter 'ProcessId=%d').ExecutablePath" % pid],
+                         capture_output=True, text=True, errors="replace", timeout=30).stdout.strip()
+    _pid_path_cache[pid] = out or ""
+    return _pid_path_cache[pid]
+
+_pid_path_cache = {}
+
 def detect_beacons():
     for (pid, peer), ts in _flows.items():
         if (pid, peer) in _flagged or len(ts) < MIN_OBS:
@@ -119,6 +138,14 @@ def detect_beacons():
         if cv <= JITTER_TOL:
             _flagged.add((pid, peer))
             loop = peer.startswith(LOOPBACK)
+            # trusted-path suppression: installed software (browsers, IDEs,
+            # OS telemetry) legitimately maintains periodic keepalives; the
+            # C2 signal is a user-writable-path process beaconing
+            img = _pid_image(pid).lower()
+            trusted = img.startswith(TRUSTED_IMG_PREFIXES) or \
+                any(p in img for p in TRUSTED_IMG_INFIXES)
+            if trusted and not loop:
+                continue
             rec = state.norm_event("network", "network", "critical",
                                    f"Beacon cadence: pid {pid} -> {peer} every ~{mean:.1f}s",
                                    {"pid": pid, "peer": peer, "interval": round(mean, 1),
