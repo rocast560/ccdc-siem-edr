@@ -39,12 +39,14 @@ EXEC_PROTECT = (0x10, 0x20, 0x40, 0x80)      # EXECUTE, EXECUTE_READ, EXECUTE_RW
 
 SYSCALL_STUB = b"\x0f\x05\xc3"                # syscall ; ret
 STUB_WINDOW = b"\x0f\x05"
+RW_PROTECT = (0x04, 0x08)                     # PAGE_READWRITE, READWRITE+copy-on-write
 
 JIT_HOSTS = {"dotnet.exe", "java.exe", "javaw.exe", "node.exe", "deno.exe", "bun.exe",
              "msbuild.exe", "w3wp.exe", "sqlservr.exe"}
 
 MAX_REGION = 0x100000                          # inspect up to 1 MB per region
-_regions = {}       # pid -> {(base, size, prot)}
+_regions = {}       # pid -> {(base, size, prot)} of private EXEC regions
+_rw_regions = {}    # pid -> {(base, size)} of private RW regions (transition tracking)
 _alerted = set()
 
 def _alert(rule, sev, title, why, pid, name, path, extra):
@@ -65,7 +67,9 @@ def scan_process(pid, name, path):
         return []
     jit = (name or "").lower() in JIT_HOSTS
     prev = _regions.get(pid, set())
+    prev_rw = _rw_regions.get(pid, set())
     cur = set()
+    cur_rw = set()
     findings = []
     try:
         addr = 0
@@ -78,27 +82,44 @@ def scan_process(pid, name, path):
             base = mbi.BaseAddress or 0
             size = mbi.RegionSize or 0
             prot = mbi.Protect
-            if mbi.State == MEM_COMMIT and mbi.Type == MEM_PRIVATE and prot in EXEC_PROTECT \
+            if mbi.State == MEM_COMMIT and mbi.Type == MEM_PRIVATE \
                     and 0 < size <= 0x10000000:
-                cur.add((base, size, prot))
-                if not jit:
-                    extra = {"base": hex(base), "size": size, "protect": hex(prot),
-                             "new": (base, size, prot) not in prev}
-                    _alert("MEM-RWX-UNBACKED", "critical",
-                           "Unbacked executable memory in %s (pid %d) at %s" % (name, pid, hex(base)),
-                           "Private PAGE_EXECUTE region with no file mapping - the canonical "
-                           "location of injected shellcode. Legitimate code lives in image "
-                           "mappings backed by on-disk files; JIT runtimes are allowlisted.",
-                           pid, name, path, extra)
-                    if (base, size, prot) not in prev:
-                        _alert("MEM-RWX-NEW", "critical",
-                               "New executable region appeared in %s (pid %d) at %s" % (name, pid, hex(base)),
-                               "A private executable region appeared after the previous scan pass "
-                               "- the observable effect of VirtualAlloc/VirtualAllocEx/"
-                               "NtAllocateVirtualMemory with executable protection, the loader "
-                               "allocation primitive (tracked at effects level because user-mode "
-                               "EDRs cannot hook the allocation APIs without injecting).",
+                if prot in RW_PROTECT:
+                    cur_rw.add((base, size))
+                if prot in EXEC_PROTECT:
+                    cur.add((base, size, prot))
+                    if not jit:
+                        extra = {"base": hex(base), "size": size, "protect": hex(prot),
+                                 "new": (base, size, prot) not in prev}
+                        _alert("MEM-RWX-UNBACKED", "critical",
+                               "Unbacked executable memory in %s (pid %d) at %s" % (name, pid, hex(base)),
+                               "Private PAGE_EXECUTE region with no file mapping - the canonical "
+                               "location of injected shellcode. Legitimate code lives in image "
+                               "mappings backed by on-disk files; JIT runtimes are allowlisted.",
                                pid, name, path, extra)
+                        if (base, size, prot) not in prev:
+                            _alert("MEM-RWX-NEW", "critical",
+                                   "New executable region appeared in %s (pid %d) at %s" % (name, pid, hex(base)),
+                                   "A private executable region appeared after the previous scan pass "
+                                   "- the observable effect of VirtualAlloc/VirtualAllocEx/"
+                                   "NtAllocateVirtualMemory with executable protection, the loader "
+                                   "allocation primitive (tracked at effects level because user-mode "
+                                   "EDRs cannot hook the allocation APIs without injecting).",
+                                   pid, name, path, extra)
+                        # RW -> RX transition: the region was read-write in a previous
+                        # pass and is executable now (VirtualProtect permission flip -
+                        # the modern loader pattern that never creates an RWX page)
+                        was_rw = any(pb < base + size and base < pb + ps
+                                     for (pb, ps) in prev_rw)
+                        if was_rw:
+                            _alert("MEM-PROMOTE", "critical",
+                                   "RW->RX permission flip in %s (pid %d) at %s" % (name, pid, hex(base)),
+                                   "A private memory region that was read-write in a previous scan "
+                                   "pass is now executable. This is the VirtualProtect transition "
+                                   "signature of the modern loader pattern - allocate RW, write "
+                                   "shellcode, flip to RX - which deliberately never creates a "
+                                   "suspicous RWX page. Caught at the flip itself.",
+                                   pid, name, path, extra)
                 # syscall-stub scan inside the region
                 ofs = 0
                 while ofs < min(size, MAX_REGION):
@@ -145,6 +166,7 @@ def scan_process(pid, name, path):
     finally:
         k32.CloseHandle(h)
     _regions[pid] = cur
+    _rw_regions[pid] = cur_rw
     return findings
 
 def poll(limit=6, candidates=None):
