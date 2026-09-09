@@ -89,7 +89,7 @@
     var firing = rules.filter(function (r) { return (CACHE.hits[r] || 0) > 0; });
     var total = rules.reduce(function (n, r) { return n + (CACHE.hits[r] || 0); }, 0);
     var c = mk("div", "lv-card");
-    c.style.borderLeftColor = total ? sevColor("critical") : "#5ba3d0";
+    c.style.borderLeftColor = total ? sevColor("critical") : "#4ea6d1";
     var t = mk("div", "ttl");
     t.textContent = name;
     if (total) {
