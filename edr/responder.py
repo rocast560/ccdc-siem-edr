@@ -55,6 +55,96 @@ def _log(action, ok, detail, sev="medium"):
                      ("Response " + action + (" ok: " if ok else " REFUSED: ") + detail),
                      {"action": action, "ok": ok, "detail": detail})
 
+def _identify(pid):
+    """(info, name, path) for a pid, or (None, '', '') if gone."""
+    try:
+        out = subprocess.run(
+            ["powershell", "-NoProfile", "-Command",
+             "Get-CimInstance Win32_Process -Filter 'ProcessId=%d' | Select-Object Name,ExecutablePath "
+             "| ConvertTo-Json -Compress" % pid],
+            capture_output=True, text=True, timeout=30).stdout
+        import json
+        info = json.loads(out) if out.strip() else None
+    except Exception:
+        info = None
+    if not info:
+        return None, "", ""
+    return info, (info.get("Name") or "").lower(), (info.get("ExecutablePath") or "").lower()
+
+def _guard(pid, action):
+    """Shared safety gate for kill/suspend. Returns (info,name,path) or (None,err)."""
+    try:
+        pid = int(pid)
+    except (TypeError, ValueError):
+        return None, "bad pid"
+    if pid <= 4:
+        return None, "protected system pid"
+    if pid in (os.getpid(), os.getppid() if hasattr(os, "getppid") else None):
+        return None, "refusing to target the EDR"
+    info, name, path = _identify(pid)
+    if info is None:
+        return None, "process already gone"
+    if name in CRITICAL_NAMES:
+        return None, "critical system process refused"
+    if any(path.startswith(p.lower()) for p in PROTECTED_PREFIXES if p):
+        return None, "protected image path refused"
+    return (info, name, path), None
+
+def suspend_process(pid):
+    """Freeze a process (NtSuspendProcess) - containment WITHOUT deletion:
+    the beacon stops communicating, but the process and its memory stay
+    intact for forensic extraction."""
+    got, err = _guard(pid, "suspend")
+    if err:
+        _log("suspend", False, f"pid {pid}: {err}"); return False, err
+    info, name, path = got
+    import ctypes
+    PROCESS_SUSPEND_RESUME = 0x0800
+    k32 = ctypes.windll.kernel32
+    ntdll = ctypes.windll.ntdll
+    k32.OpenProcess.restype = ctypes.c_void_p
+    k32.CloseHandle.argtypes = [ctypes.c_void_p]
+    h = k32.OpenProcess(PROCESS_SUSPEND_RESUME, False, int(pid))
+    if not h:
+        _log("suspend", False, f"pid {pid}: OpenProcess failed"); return False, "open failed"
+    try:
+        st = ntdll.NtSuspendProcess(h)
+    finally:
+        k32.CloseHandle(h)
+    ok = (st & 0xFFFFFFFF) == 0
+    _log("suspend", ok, f"pid {pid} ({name})")
+    if ok:
+        state.raise_alert("RESP-SUSPEND", "high", f"Response: suspended pid {pid} ({name})",
+                          "Analyst-initiated containment: the process is frozen in place - it "
+                          "cannot communicate, but nothing was deleted. Full memory remains "
+                          "available for on-host forensics (config extraction, strings, "
+                          "signatures) before a kill/restore decision.",
+                          data={"pid": int(pid), "name": name, "path": path})
+    return ok, "suspended" if ok else "ntstatus %s" % hex(st & 0xFFFFFFFF)
+
+def resume_process(pid):
+    """Undo a suspend (NtResumeProcess) - release a contained process."""
+    try:
+        pid = int(pid)
+    except (TypeError, ValueError):
+        return False, "bad pid"
+    import ctypes
+    PROCESS_SUSPEND_RESUME = 0x0800
+    k32 = ctypes.windll.kernel32
+    ntdll = ctypes.windll.ntdll
+    k32.OpenProcess.restype = ctypes.c_void_p
+    k32.CloseHandle.argtypes = [ctypes.c_void_p]
+    h = k32.OpenProcess(PROCESS_SUSPEND_RESUME, False, pid)
+    if not h:
+        return False, "open failed"
+    try:
+        st = ntdll.ResumeThread(h) if False else ntdll.NtResumeProcess(h)
+    finally:
+        k32.CloseHandle(h)
+    ok = (st & 0xFFFFFFFF) == 0
+    _log("resume", ok, f"pid {pid}")
+    return ok, "resumed" if ok else "ntstatus %s" % hex(st & 0xFFFFFFFF)
+
 def kill_process(pid):
     """Terminate a process by PID with safety checks. Returns (ok, message)."""
     try:
