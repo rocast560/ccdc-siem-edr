@@ -419,3 +419,20 @@ True for documentation AND loopback ranges, so named-range checks run first;
 and RIPEstat nests whois record groups in lists-of-lists which must be
 flattened before key extraction (the silent AttributeError otherwise drops
 the whole online section).
+
+---
+
+## Addendum 10 — RW→RX permission-transition tracking (`MEM-PROMOTE`)
+
+Closes the one genuinely-beneficial gap from the memory-technique review.
+**Tranche-8: 1/1. Tranche-5 regression: 7/7.**
+
+`memmap.py` now records private READ-WRITE regions alongside executable ones
+and, on each pass, flags any executable region that overlaps a region
+previously seen as read-write: the `VirtualProtect` flip signature of the
+modern loader pattern (allocate RW → write shellcode → flip to RX) which
+deliberately never creates a detectable RWX page. Overlap matching handles
+region splitting (VirtualProtect on part of a region divides it). JIT hosts
+remain allowlisted. This catches the flip *at the transition* with far higher
+fidelity than "is private RX", closing the timing and false-positive gap that
+existed when only the post-flip `MEM-RWX-UNBACKED` heuristic could see it.
