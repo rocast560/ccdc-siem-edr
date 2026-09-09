@@ -9,14 +9,14 @@
     /* page chrome - a cooler, flatter ground than the console itself, so each screen reads as an object on a sheet */
     --sheet:#15181C; --sheet2:#1A1E23; --rule:#2A3037;
     --ink:#E7EAEE; --ink2:#9BA5B1; --ink3:#6B7683;
-    --mark:#5ba3d0;
+    --mark:#4ea6d1;
     --pg-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
     --pg-mono:"SFMono-Regular","Cascadia Mono",Consolas,"Liberation Mono",monospace;
 
     /* console tokens - Blueprint dark */
-    --bg:#191b1e; --panel:#202327; --raised:#2a2e33; --well:#0f1113;
-    --line:#343841; --fg:#edeff2; --fg2:#b7bdc4; --fg3:#969da6; --fg4:#767d86;
-    --blue:#34709f; --blue4:#5ba3d0; --blue5:#8fc6e8; --green5:#6cc199; --violet:#BDADFF;
+    --bg:#16181b; --panel:#1c1f23; --raised:#252a30; --well:#0d0f11;
+    --line:#2c313a; --line2:#3a4049; --fg:#e9ecef; --fg2:#b2b9c1; --fg3:#8a929b; --fg4:#5f6771;
+    --blue:#2c6f9e; --blue4:#4ea6d1; --blue5:#86c8ea; --green5:#5fc39a; --violet:#BDADFF;
     --ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
     --mono:"SFMono-Regular","Cascadia Mono",Consolas,"Liberation Mono",monospace;
   }
@@ -79,7 +79,7 @@
   .scr .frow{display:flex;flex-direction:column;gap:4px}
   .scr .ind{display:flex;flex-direction:column;gap:5px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05)}
   .scr .navitem{display:flex;align-items:center;gap:8px;height:26px;padding:0 12px;font-size:12px;color:#b7bdc4}
-  .scr .navitem-on{background:rgba(45,114,210,.18);color:#FFFFFF;box-shadow:inset 2px 0 0 #5ba3d0;font-weight:500}
+  .scr .navitem-on{background:rgba(45,114,210,.18);color:#FFFFFF;box-shadow:inset 2px 0 0 #4ea6d1;font-weight:500}
   .scr .sw-row{display:flex;align-items:center;gap:10px;height:26px}
   .scr .sw-chip{width:40px;height:20px;border-radius:2px;flex:none}
   .scr .sw-name{font-size:11.5px;color:#cdd2d8;flex-grow:1}
@@ -119,7 +119,7 @@
     padding:0 9px;border-radius:2px;background:#2a2e33;color:#b7bdc4;opacity:.7;cursor:pointer;
     font:500 11px var(--ui);box-shadow:inset 0 0 0 1px #3f444d}
   #sysbtn:hover{opacity:1;color:#edeff2}
-  #sysbtn:focus-visible,.scr [style*="padding:0 15px"]:focus-visible{outline:2px solid #5ba3d0;outline-offset:1px}
+  #sysbtn:focus-visible,.scr [style*="padding:0 15px"]:focus-visible{outline:2px solid #4ea6d1;outline-offset:1px}
   @media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
 </style>
 </head>
@@ -151,10 +151,10 @@
     <div class="pg-frame">
 <div class="scr" style="height:1000px">
 
-  <div style="height:50px;flex:none;display:flex;align-items:center;gap:0;padding:0 14px;background:#202327;border-bottom:1px solid #0f1113;box-shadow:0 1px 1px rgba(17,20,24,.4)">
+  <div style="height:50px;flex:none;display:flex;align-items:center;gap:0;padding:0 14px;background:#1a1d21;border-bottom:1px solid #2c313a;box-shadow:none">
     <div style="display:flex;align-items:center;gap:9px;padding-right:16px">
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <path d="M10 1.5 17.5 5.5v6.2c0 3.1-3 5.7-7.5 6.8-4.5-1.1-7.5-3.7-7.5-6.8V5.5L10 1.5Z" stroke="#5ba3d0" stroke-width="1.4" fill="rgba(45,114,210,.16)"></path>
+        <path d="M10 1.5 17.5 5.5v6.2c0 3.1-3 5.7-7.5 6.8-4.5-1.1-7.5-3.7-7.5-6.8V5.5L10 1.5Z" stroke="#4ea6d1" stroke-width="1.4" fill="rgba(45,114,210,.16)"></path>
         <path d="M6.6 9.9 9.1 12.4 13.6 7.6" stroke="#8fc6e8" stroke-width="1.6" stroke-linecap="square"></path>
       </svg>
       <div style="font:600 14px var(--ui);letter-spacing:.02em;color:#edeff2">CCDC<span style="color:#5e666f">·</span>EDR</div>
@@ -162,7 +162,7 @@
     <div style="width:1px;height:22px;background:#343841"></div>
 
     <div style="display:flex;align-items:stretch;height:50px;margin-left:6px">
-      <div style="display:flex;align-items:center;padding:0 15px;font:600 12.5px var(--ui);color:#FFFFFF;box-shadow:inset 0 -2px 0 #5ba3d0">Dashboard</div>
+      <div style="display:flex;align-items:center;padding:0 15px;font:600 12.5px var(--ui);color:#FFFFFF;box-shadow:inset 0 -2px 0 #4ea6d1">Dashboard</div>
       <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#b7bdc4">Log Explorer</div>
       <div style="display:flex;align-items:center;gap:6px;padding:0 15px;font:400 12.5px var(--ui);color:#b7bdc4">Alerts
         <span class="tag" style="background:rgba(205,66,70,.18);color:#FA999C">79</span>
@@ -269,7 +269,7 @@
             <path d="M44,137 L72.5,131 L101,141.5 L129.5,134 L158,123.5 L186.5,129.5 L215,138.5 L243.5,132.5 L272,126.5 L300.5,135.5 L329,140 L357.5,131 L386,119 L414.5,128 L443,134 L471.5,125 L500,129.5 L528.5,137 L557,132.5 L585.5,120.5 L614,108.5 L642.5,113 L671,126.5 L699.5,131 L728,123.5 L756.5,87.5 L785,62 L813.5,78.5 L842,98 L870.5,104 L899,92 L927.5,68 L956,41 L984.5,59 L1013,83 L1041.5,96.5 L1070,105.5 L1098.5,111.5 L1127,116 L1155.5,120.5 L1155.5,170 L44,170 Z"
                   fill="rgba(45,114,210,.20)"></path>
             <path d="M44,137 L72.5,131 L101,141.5 L129.5,134 L158,123.5 L186.5,129.5 L215,138.5 L243.5,132.5 L272,126.5 L300.5,135.5 L329,140 L357.5,131 L386,119 L414.5,128 L443,134 L471.5,125 L500,129.5 L528.5,137 L557,132.5 L585.5,120.5 L614,108.5 L642.5,113 L671,126.5 L699.5,131 L728,123.5 L756.5,87.5 L785,62 L813.5,78.5 L842,98 L870.5,104 L899,92 L927.5,68 L956,41 L984.5,59 L1013,83 L1041.5,96.5 L1070,105.5 L1098.5,111.5 L1127,116 L1155.5,120.5"
-                  fill="none" stroke="#5ba3d0" stroke-width="2" stroke-linejoin="round"></path>
+                  fill="none" stroke="#4ea6d1" stroke-width="2" stroke-linejoin="round"></path>
             <rect x="756" y="20" width="290" height="150" fill="rgba(205,66,70,.06)"></rect>
             <line x1="756.5" y1="20" x2="756.5" y2="170" stroke="rgba(205,66,70,.45)" stroke-width="1" stroke-dasharray="3 3"></line>
             <text x="763" y="31" font-family="-apple-system, Segoe UI, sans-serif" font-size="10" font-weight="600" fill="#FA999C" letter-spacing=".06em">INTRUSION WINDOW</text>
@@ -317,7 +317,7 @@
                 <text x="0" y="150">Credential Access</text>
                 <text x="0" y="177">Lateral Movement</text>
               </g>
-              <g fill="#5ba3d0">
+              <g fill="#4ea6d1">
                 <rect x="134" y="5" width="390" height="12" rx="3"></rect>
                 <rect x="134" y="32" width="260" height="12" rx="3"></rect>
                 <rect x="134" y="59" width="223" height="12" rx="3"></rect>
@@ -567,10 +567,10 @@
     <div class="pg-frame">
 <div class="scr" style="height:1000px">
 
-  <div style="height:50px;flex:none;display:flex;align-items:center;padding:0 14px;background:#202327;border-bottom:1px solid #0f1113;box-shadow:0 1px 1px rgba(17,20,24,.4)">
+  <div style="height:50px;flex:none;display:flex;align-items:center;padding:0 14px;background:#1a1d21;border-bottom:1px solid #2c313a;box-shadow:none">
     <div style="display:flex;align-items:center;gap:9px;padding-right:16px">
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <path d="M10 1.5 17.5 5.5v6.2c0 3.1-3 5.7-7.5 6.8-4.5-1.1-7.5-3.7-7.5-6.8V5.5L10 1.5Z" stroke="#5ba3d0" stroke-width="1.4" fill="rgba(45,114,210,.16)"></path>
+        <path d="M10 1.5 17.5 5.5v6.2c0 3.1-3 5.7-7.5 6.8-4.5-1.1-7.5-3.7-7.5-6.8V5.5L10 1.5Z" stroke="#4ea6d1" stroke-width="1.4" fill="rgba(45,114,210,.16)"></path>
         <path d="M6.6 9.9 9.1 12.4 13.6 7.6" stroke="#8fc6e8" stroke-width="1.6" stroke-linecap="square"></path>
       </svg>
       <div style="font:600 14px var(--ui);letter-spacing:.02em;color:#edeff2">CCDC<span style="color:#5e666f">·</span>EDR</div>
@@ -578,7 +578,7 @@
     <div style="width:1px;height:22px;background:#343841"></div>
     <div style="display:flex;align-items:stretch;height:50px;margin-left:6px">
       <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#b7bdc4">Dashboard</div>
-      <div style="display:flex;align-items:center;padding:0 15px;font:600 12.5px var(--ui);color:#FFFFFF;box-shadow:inset 0 -2px 0 #5ba3d0">Log Explorer</div>
+      <div style="display:flex;align-items:center;padding:0 15px;font:600 12.5px var(--ui);color:#FFFFFF;box-shadow:inset 0 -2px 0 #4ea6d1">Log Explorer</div>
       <div style="display:flex;align-items:center;gap:6px;padding:0 15px;font:400 12.5px var(--ui);color:#b7bdc4">Alerts <span class="tag" style="background:rgba(205,66,70,.18);color:#FA999C">79</span></div>
       <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#b7bdc4">Signatures</div>
       <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#b7bdc4">Threat Intel</div>
@@ -782,7 +782,7 @@
 
         <div class="row" style="background:rgba(205,66,70,.07)"><div style="width:22px;flex:none;display:flex;justify-content:center"><span class="dot" style="background:#EC9A3C"></span></div><div class="td mono" style="width:112px;flex:none;color:#969da6">13:14:22.884</div><div class="td mono" style="width:106px;flex:none">WIN-WKS14</div><div class="td mono" style="width:78px;flex:none;color:#969da6">sysmon</div><div class="td mono" style="width:46px;flex:none">1</div><div class="td" style="width:80px;flex:none;color:#969da6">process</div><div class="td mono" style="width:104px;flex:none;color:#969da6">CORP\jdoe</div><div class="td mono" style="flex-grow:1">mshta.exe → powershell.exe -nop -w hidden -enc SQBFAFgA…</div></div>
 
-        <div class="row" style="background:rgba(45,114,210,.20);box-shadow:inset 2px 0 0 #5ba3d0;border-bottom:1px solid rgba(76,144,240,.35)"><div style="width:22px;flex:none;display:flex;justify-content:center"><span class="dot" style="background:#CD4246"></span></div><div class="td mono" style="width:112px;flex:none;color:#cdd2d8">13:14:41.402</div><div class="td mono" style="width:106px;flex:none;color:#FFFFFF">WIN-WKS14</div><div class="td mono" style="width:78px;flex:none;color:#cdd2d8">powershell</div><div class="td mono" style="width:46px;flex:none;color:#FFFFFF">4104</div><div class="td" style="width:80px;flex:none;color:#cdd2d8">process</div><div class="td mono" style="width:104px;flex:none;color:#cdd2d8">CORP\jdoe</div><div class="td mono" style="flex-grow:1;color:#FFFFFF">ScriptBlock: [Ref].Assembly.GetType('…AmsiUtils') patch</div></div>
+        <div class="row" style="background:rgba(45,114,210,.20);box-shadow:inset 2px 0 0 #4ea6d1;border-bottom:1px solid rgba(76,144,240,.35)"><div style="width:22px;flex:none;display:flex;justify-content:center"><span class="dot" style="background:#CD4246"></span></div><div class="td mono" style="width:112px;flex:none;color:#cdd2d8">13:14:41.402</div><div class="td mono" style="width:106px;flex:none;color:#FFFFFF">WIN-WKS14</div><div class="td mono" style="width:78px;flex:none;color:#cdd2d8">powershell</div><div class="td mono" style="width:46px;flex:none;color:#FFFFFF">4104</div><div class="td" style="width:80px;flex:none;color:#cdd2d8">process</div><div class="td mono" style="width:104px;flex:none;color:#cdd2d8">CORP\jdoe</div><div class="td mono" style="flex-grow:1;color:#FFFFFF">ScriptBlock: [Ref].Assembly.GetType('…AmsiUtils') patch</div></div>
 
         <div class="row"><div style="width:22px;flex:none"></div><div class="td mono" style="width:112px;flex:none;color:#969da6">13:14:41.410</div><div class="td mono" style="width:106px;flex:none">WIN-WKS14</div><div class="td mono" style="width:78px;flex:none;color:#969da6">sysmon</div><div class="td mono" style="width:46px;flex:none">7</div><div class="td" style="width:80px;flex:none;color:#969da6">module</div><div class="td mono" style="width:104px;flex:none;color:#969da6">CORP\jdoe</div><div class="td mono" style="flex-grow:1">ImageLoad C:\Windows\System32\amsi.dll (signed, MS)</div></div>
 
@@ -833,7 +833,7 @@
       </div>
 
       <div style="height:28px;flex:none;display:flex;align-items:stretch;padding:0 12px;border-bottom:1px solid #343841">
-        <div style="display:flex;align-items:center;padding:0 10px;font:600 11.5px var(--ui);color:#FFFFFF;box-shadow:inset 0 -2px 0 #5ba3d0">Normalized</div>
+        <div style="display:flex;align-items:center;padding:0 10px;font:600 11.5px var(--ui);color:#FFFFFF;box-shadow:inset 0 -2px 0 #4ea6d1">Normalized</div>
         <div style="display:flex;align-items:center;padding:0 10px;font:400 11.5px var(--ui);color:#969da6">Raw</div>
         <div style="display:flex;align-items:center;gap:5px;padding:0 10px;font:400 11.5px var(--ui);color:#969da6">Related <span class="tag" style="background:#2a2e33;color:#b7bdc4">6</span></div>
       </div>
@@ -893,10 +893,10 @@
     <div class="pg-frame">
 <div class="scr" style="height:1000px">
 
-  <div style="height:50px;flex:none;display:flex;align-items:center;padding:0 14px;background:#202327;border-bottom:1px solid #0f1113;box-shadow:0 1px 1px rgba(17,20,24,.4)">
+  <div style="height:50px;flex:none;display:flex;align-items:center;padding:0 14px;background:#1a1d21;border-bottom:1px solid #2c313a;box-shadow:none">
     <div style="display:flex;align-items:center;gap:9px;padding-right:16px">
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <path d="M10 1.5 17.5 5.5v6.2c0 3.1-3 5.7-7.5 6.8-4.5-1.1-7.5-3.7-7.5-6.8V5.5L10 1.5Z" stroke="#5ba3d0" stroke-width="1.4" fill="rgba(45,114,210,.16)"></path>
+        <path d="M10 1.5 17.5 5.5v6.2c0 3.1-3 5.7-7.5 6.8-4.5-1.1-7.5-3.7-7.5-6.8V5.5L10 1.5Z" stroke="#4ea6d1" stroke-width="1.4" fill="rgba(45,114,210,.16)"></path>
         <path d="M6.6 9.9 9.1 12.4 13.6 7.6" stroke="#8fc6e8" stroke-width="1.6" stroke-linecap="square"></path>
       </svg>
       <div style="font:600 14px var(--ui);letter-spacing:.02em;color:#edeff2">CCDC<span style="color:#5e666f">·</span>EDR</div>
@@ -905,7 +905,7 @@
     <div style="display:flex;align-items:stretch;height:50px;margin-left:6px">
       <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#b7bdc4">Dashboard</div>
       <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#b7bdc4">Log Explorer</div>
-      <div style="display:flex;align-items:center;gap:6px;padding:0 15px;font:600 12.5px var(--ui);color:#FFFFFF;box-shadow:inset 0 -2px 0 #5ba3d0">Alerts <span class="tag" style="background:rgba(205,66,70,.22);color:#FA999C">79</span></div>
+      <div style="display:flex;align-items:center;gap:6px;padding:0 15px;font:600 12.5px var(--ui);color:#FFFFFF;box-shadow:inset 0 -2px 0 #4ea6d1">Alerts <span class="tag" style="background:rgba(205,66,70,.22);color:#FA999C">79</span></div>
       <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#b7bdc4">Signatures</div>
       <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#b7bdc4">Threat Intel</div>
     </div>
@@ -954,7 +954,7 @@
         <span class="mono" style="font-size:10.5px;color:#969da6">1</span>
       </div>
 
-      <div style="display:flex;gap:10px;padding:9px 12px;background:rgba(45,114,210,.18);box-shadow:inset 3px 0 0 #5ba3d0;border-bottom:1px solid rgba(76,144,240,.3)">
+      <div style="display:flex;gap:10px;padding:9px 12px;background:rgba(45,114,210,.18);box-shadow:inset 3px 0 0 #4ea6d1;border-bottom:1px solid rgba(76,144,240,.3)">
         <div style="flex-grow:1;min-width:0;display:flex;flex-direction:column;gap:4px">
           <div style="font:500 12.5px var(--ui);color:#FFFFFF">Havoc: macro → AMSI patch → injection → Run key → beacon</div>
           <div class="mono" style="font-size:10.5px;color:#8fc6e8">EDR-COR-KILLCHAIN-001</div>
@@ -1251,10 +1251,10 @@
     <div class="pg-frame">
 <div class="scr" style="height:1000px">
 
-  <div style="height:50px;flex:none;display:flex;align-items:center;padding:0 14px;background:#202327;border-bottom:1px solid #0f1113;box-shadow:0 1px 1px rgba(17,20,24,.4)">
+  <div style="height:50px;flex:none;display:flex;align-items:center;padding:0 14px;background:#1a1d21;border-bottom:1px solid #2c313a;box-shadow:none">
     <div style="display:flex;align-items:center;gap:9px;padding-right:16px">
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <path d="M10 1.5 17.5 5.5v6.2c0 3.1-3 5.7-7.5 6.8-4.5-1.1-7.5-3.7-7.5-6.8V5.5L10 1.5Z" stroke="#5ba3d0" stroke-width="1.4" fill="rgba(45,114,210,.16)"></path>
+        <path d="M10 1.5 17.5 5.5v6.2c0 3.1-3 5.7-7.5 6.8-4.5-1.1-7.5-3.7-7.5-6.8V5.5L10 1.5Z" stroke="#4ea6d1" stroke-width="1.4" fill="rgba(45,114,210,.16)"></path>
         <path d="M6.6 9.9 9.1 12.4 13.6 7.6" stroke="#8fc6e8" stroke-width="1.6" stroke-linecap="square"></path>
       </svg>
       <div style="font:600 14px var(--ui);letter-spacing:.02em;color:#edeff2">CCDC<span style="color:#5e666f">·</span>EDR</div>
@@ -1264,7 +1264,7 @@
       <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#b7bdc4">Dashboard</div>
       <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#b7bdc4">Log Explorer</div>
       <div style="display:flex;align-items:center;gap:6px;padding:0 15px;font:400 12.5px var(--ui);color:#b7bdc4">Alerts <span class="tag" style="background:rgba(205,66,70,.18);color:#FA999C">79</span></div>
-      <div style="display:flex;align-items:center;padding:0 15px;font:600 12.5px var(--ui);color:#FFFFFF;box-shadow:inset 0 -2px 0 #5ba3d0">Signatures</div>
+      <div style="display:flex;align-items:center;padding:0 15px;font:600 12.5px var(--ui);color:#FFFFFF;box-shadow:inset 0 -2px 0 #4ea6d1">Signatures</div>
       <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#b7bdc4">Threat Intel</div>
     </div>
     <div style="flex-grow:1"></div>
@@ -1305,7 +1305,7 @@
         <div style="width:74px;flex:none;padding:0 8px;text-align:right" class="lbl">Fires</div>
       </div>
 
-      <div style="display:flex;align-items:center;height:32px;border-bottom:1px solid rgba(255,255,255,.045);background:rgba(45,114,210,.18);box-shadow:inset 3px 0 0 #5ba3d0">
+      <div style="display:flex;align-items:center;height:32px;border-bottom:1px solid rgba(255,255,255,.045);background:rgba(45,114,210,.18);box-shadow:inset 3px 0 0 #4ea6d1">
         <div style="width:44px;flex:none;padding-left:12px"><span class="sw sw-on"><span class="knob" style="right:2px"></span></span></div>
         <div style="width:172px;flex:none;padding:0 8px;display:flex;align-items:center;gap:7px"><span class="dot" style="background:#CD4246"></span><span class="mono" style="font-size:11px;color:#FFFFFF">EDR-C2-HAVOC-003</span></div>
         <div style="flex-grow:1;padding:0 8px;font-size:12px;color:#FFFFFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Havoc Demon - RWX alloc + indirect syscall</div>
@@ -1537,10 +1537,10 @@
     <div class="pg-frame">
 <div class="scr" style="height:1000px">
 
-  <div style="height:50px;flex:none;display:flex;align-items:center;padding:0 14px;background:#202327;border-bottom:1px solid #0f1113;box-shadow:0 1px 1px rgba(17,20,24,.4)">
+  <div style="height:50px;flex:none;display:flex;align-items:center;padding:0 14px;background:#1a1d21;border-bottom:1px solid #2c313a;box-shadow:none">
     <div style="display:flex;align-items:center;gap:9px;padding-right:16px">
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <path d="M10 1.5 17.5 5.5v6.2c0 3.1-3 5.7-7.5 6.8-4.5-1.1-7.5-3.7-7.5-6.8V5.5L10 1.5Z" stroke="#5ba3d0" stroke-width="1.4" fill="rgba(45,114,210,.16)"></path>
+        <path d="M10 1.5 17.5 5.5v6.2c0 3.1-3 5.7-7.5 6.8-4.5-1.1-7.5-3.7-7.5-6.8V5.5L10 1.5Z" stroke="#4ea6d1" stroke-width="1.4" fill="rgba(45,114,210,.16)"></path>
         <path d="M6.6 9.9 9.1 12.4 13.6 7.6" stroke="#8fc6e8" stroke-width="1.6" stroke-linecap="square"></path>
       </svg>
       <div style="font:600 14px var(--ui);letter-spacing:.02em;color:#edeff2">CCDC<span style="color:#5e666f">·</span>EDR</div>
@@ -1551,7 +1551,7 @@
       <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#b7bdc4">Log Explorer</div>
       <div style="display:flex;align-items:center;gap:6px;padding:0 15px;font:400 12.5px var(--ui);color:#b7bdc4">Alerts <span class="tag" style="background:rgba(205,66,70,.18);color:#FA999C">79</span></div>
       <div style="display:flex;align-items:center;padding:0 15px;font:400 12.5px var(--ui);color:#b7bdc4">Signatures</div>
-      <div style="display:flex;align-items:center;padding:0 15px;font:600 12.5px var(--ui);color:#FFFFFF;box-shadow:inset 0 -2px 0 #5ba3d0">Threat Intel</div>
+      <div style="display:flex;align-items:center;padding:0 15px;font:600 12.5px var(--ui);color:#FFFFFF;box-shadow:inset 0 -2px 0 #4ea6d1">Threat Intel</div>
     </div>
     <div style="flex-grow:1"></div>
     <div style="display:flex;align-items:center;gap:10px">
@@ -1808,7 +1808,7 @@
   <div style="flex:none;padding:20px 24px 16px;border-bottom:1px solid #343841;background:#202327;display:flex;align-items:flex-end;gap:20px">
     <div style="display:flex;align-items:center;gap:11px">
       <svg width="26" height="26" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <path d="M10 1.5 17.5 5.5v6.2c0 3.1-3 5.7-7.5 6.8-4.5-1.1-7.5-3.7-7.5-6.8V5.5L10 1.5Z" stroke="#5ba3d0" stroke-width="1.4" fill="rgba(45,114,210,.16)"></path>
+        <path d="M10 1.5 17.5 5.5v6.2c0 3.1-3 5.7-7.5 6.8-4.5-1.1-7.5-3.7-7.5-6.8V5.5L10 1.5Z" stroke="#4ea6d1" stroke-width="1.4" fill="rgba(45,114,210,.16)"></path>
         <path d="M6.6 9.9 9.1 12.4 13.6 7.6" stroke="#8fc6e8" stroke-width="1.6" stroke-linecap="square"></path>
       </svg>
       <div>
@@ -1838,7 +1838,7 @@
           <div class="sw-row"><span class="sw-chip" style="background:#2a2e33"></span><span class="sw-name">raised · group header, hover</span><span class="sw-hex">#2a2e33</span></div>
           <div class="sw-row"><span class="sw-chip" style="background:#343841"></span><span class="sw-name">border · default button</span><span class="sw-hex">#343841</span></div>
           <div class="sw-row"><span class="sw-chip" style="background:#3f444d"></span><span class="sw-name">input outline · divider strong</span><span class="sw-hex">#3f444d</span></div>
-          <div class="sw-row" style="border-top:1px solid rgba(255,255,255,.05);margin-top:4px;padding-top:4px;height:auto"><span style="font-size:11px;line-height:1.5;color:#767d86">Selection is <span class="mono" style="color:#8fc6e8">rgba(45,114,210,.18)</span> plus a 2-3 px <span class="mono" style="color:#8fc6e8">#5ba3d0</span> left rail. Elevation is a hairline, never a soft shadow - one <span class="mono">0 1px 1px rgba(17,20,24,.4)</span> under the navbar only.</span></div>
+          <div class="sw-row" style="border-top:1px solid rgba(255,255,255,.05);margin-top:4px;padding-top:4px;height:auto"><span style="font-size:11px;line-height:1.5;color:#767d86">Selection is <span class="mono" style="color:#8fc6e8">rgba(45,114,210,.18)</span> plus a 2-3 px <span class="mono" style="color:#8fc6e8">#4ea6d1</span> left rail. Elevation is a hairline, never a soft shadow - one <span class="mono">0 1px 1px rgba(17,20,24,.4)</span> under the navbar only.</span></div>
         </div>
       </div>
 
@@ -1859,7 +1859,7 @@
         <div class="ph"><span class="lbl" style="color:#b7bdc4">Accent &amp; intent</span><div style="flex-grow:1"></div><span class="mono" style="font-size:10px;color:#5e666f">fill / on-dark text</span></div>
         <div style="padding:9px 12px">
           <div class="sw-row"><span class="sw-chip" style="background:#34709f"></span><span class="sw-name">primary action</span><span class="sw-hex">#34709f</span></div>
-          <div class="sw-row"><span class="sw-chip" style="background:#5ba3d0"></span><span class="sw-name">active indicator · single-series bars</span><span class="sw-hex">#5ba3d0</span></div>
+          <div class="sw-row"><span class="sw-chip" style="background:#4ea6d1"></span><span class="sw-name">active indicator · single-series bars</span><span class="sw-hex">#4ea6d1</span></div>
           <div class="sw-row"><span class="sw-chip" style="background:#8fc6e8"></span><span class="sw-name" style="color:#8fc6e8">links · rule IDs · JSON keys</span><span class="sw-hex">#8fc6e8</span></div>
           <div class="sw-row"><span class="sw-chip" style="background:#6cc199"></span><span class="sw-name" style="color:#6cc199">pass · match · string literals</span><span class="sw-hex">#6cc199</span></div>
           <div class="sw-row"><span class="sw-chip" style="background:#FA999C"></span><span class="sw-name" style="color:#FA999C">danger text on dark</span><span class="sw-hex">#FA999C</span></div>
@@ -1914,7 +1914,7 @@
           <div>
             <div class="lbl" style="padding-bottom:6px">Single series - one hue, value at the data end</div>
             <svg width="440" height="58" viewBox="0 0 440 58" role="img" aria-label="Horizontal bar primitive with rounded data ends">
-              <g fill="#5ba3d0"><rect x="0" y="4" width="300" height="12" rx="3"></rect><rect x="0" y="26" width="196" height="12" rx="3"></rect><rect x="0" y="44" width="104" height="12" rx="3"></rect></g>
+              <g fill="#4ea6d1"><rect x="0" y="4" width="300" height="12" rx="3"></rect><rect x="0" y="26" width="196" height="12" rx="3"></rect><rect x="0" y="44" width="104" height="12" rx="3"></rect></g>
               <g font-family="SFMono-Regular, Consolas, monospace" font-size="11" fill="#cdd2d8"><text x="310" y="14">21</text><text x="206" y="36">14</text><text x="114" y="54">7</text></g>
             </svg>
           </div>
@@ -1932,7 +1932,7 @@
             <svg width="440" height="70" viewBox="0 0 440 70" role="img" aria-label="Area chart primitive over a faint grid">
               <g stroke="rgba(255,255,255,.06)"><line x1="0" y1="60.5" x2="440" y2="60.5"></line><line x1="0" y1="38.5" x2="440" y2="38.5"></line><line x1="0" y1="16.5" x2="440" y2="16.5"></line></g>
               <path d="M0,48 L55,42 L110,50 L165,30 L220,38 L275,20 L330,34 L385,26 L440,32 L440,60 L0,60 Z" fill="rgba(45,114,210,.20)"></path>
-              <path d="M0,48 L55,42 L110,50 L165,30 L220,38 L275,20 L330,34 L385,26 L440,32" fill="none" stroke="#5ba3d0" stroke-width="2" stroke-linejoin="round"></path>
+              <path d="M0,48 L55,42 L110,50 L165,30 L220,38 L275,20 L330,34 L385,26 L440,32" fill="none" stroke="#4ea6d1" stroke-width="2" stroke-linejoin="round"></path>
             </svg>
           </div>
         </div>
@@ -1970,7 +1970,7 @@
               <span style="display:flex;align-items:center;padding:0 10px;font:400 11.5px var(--ui);color:#969da6">All</span>
             </div>
             <div style="display:flex;align-items:stretch;height:26px">
-              <span style="display:flex;align-items:center;padding:0 11px;font:600 12px var(--ui);color:#FFFFFF;box-shadow:inset 0 -2px 0 #5ba3d0">Normalized</span>
+              <span style="display:flex;align-items:center;padding:0 11px;font:600 12px var(--ui);color:#FFFFFF;box-shadow:inset 0 -2px 0 #4ea6d1">Normalized</span>
               <span style="display:flex;align-items:center;padding:0 11px;font:400 12px var(--ui);color:#969da6">Raw</span>
             </div>
           </div>
@@ -2022,7 +2022,7 @@
               <div class="mono" style="width:88px;flex:none;padding:0 8px;font-size:11px;color:#cdd2d8">WIN-WKS14</div>
               <div class="mono" style="flex-grow:1;padding:0 8px;font-size:11px;color:#cdd2d8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">row carrying an alert</div>
             </div>
-            <div style="display:flex;height:26px;align-items:center;background:rgba(45,114,210,.20);box-shadow:inset 2px 0 0 #5ba3d0">
+            <div style="display:flex;height:26px;align-items:center;background:rgba(45,114,210,.20);box-shadow:inset 2px 0 0 #4ea6d1">
               <div style="width:22px;flex:none;display:flex;justify-content:center"><span class="dot" style="background:#CD4246"></span></div>
               <div class="mono" style="width:92px;flex:none;padding:0 8px;font-size:11px;color:#cdd2d8">13:15:19</div>
               <div class="mono" style="width:88px;flex:none;padding:0 8px;font-size:11px;color:#FFFFFF">WIN-WKS14</div>
@@ -2052,8 +2052,8 @@
           <div style="padding-top:8px;margin-top:2px;border-top:1px solid rgba(255,255,255,.05)">
             <span style="font-size:11px;line-height:1.55;color:#767d86">Every screen is navbar → context toolbar → work area → status bar. The work area is at most three regions: a filter or list rail, the primary table or canvas, and a detail pane. Nothing floats; panels butt against hairlines.</span>
           </div>
-          <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(45,114,210,.07);border-left:2px solid #5ba3d0;border-radius:0 2px 2px 0">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#5ba3d0" stroke-width="1.3"></circle><path d="M7 6.2v4M7 4.1v.9" stroke="#5ba3d0" stroke-width="1.5" stroke-linecap="round"></path></svg>
+          <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(45,114,210,.07);border-left:2px solid #4ea6d1;border-radius:0 2px 2px 0">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#4ea6d1" stroke-width="1.3"></circle><path d="M7 6.2v4M7 4.1v.9" stroke="#4ea6d1" stroke-width="1.5" stroke-linecap="round"></path></svg>
             <span style="font-size:11.5px;color:#cdd2d8">Callout - used for dataset provenance and scope notes, never for decoration.</span>
           </div>
         </div>
