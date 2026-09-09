@@ -214,7 +214,50 @@
       ".lv-drawer .dx:hover{color:var(--fg)}",
       ".lv-drawer pre{margin:0;padding:12px;overflow:auto;font:11px/1.5 var(--mono);color:#cdd2d8;white-space:pre-wrap;word-break:break-word}",
       ".lv-sub{font:600 9px/1 var(--ui);letter-spacing:.09em;text-transform:uppercase;color:var(--fg4);margin:2px 0}",
-      ".lv-mut{color:var(--fg4);font:11px var(--mono)}"
+      ".lv-mut{color:var(--fg4);font:11px var(--mono)}",
+      /* ---- interaction: smooth hover / press animations ---- */
+      ".scr .btn{transition:transform .09s ease, filter .14s ease, box-shadow .14s ease, background .14s ease}",
+      ".scr .btn:hover{filter:brightness(1.13);transform:translateY(-1px);box-shadow:0 2px 8px rgba(0,0,0,.38)}",
+      ".scr .btn:active{transform:translateY(0) scale(.96);filter:brightness(.93);box-shadow:none}",
+      ".scr .btn:focus-visible{outline:2px solid var(--blue4);outline-offset:1px}",
+      ".lv-actbtn{transition:transform .08s ease, filter .14s ease, box-shadow .14s ease}",
+      ".lv-actbtn:hover{filter:brightness(1.16);transform:translateY(-1px);box-shadow:0 2px 7px rgba(0,0,0,.42)}",
+      ".lv-actbtn:active{transform:scale(.9);filter:brightness(.88)}",
+      ".lv-actbtn:focus-visible{outline:2px solid var(--blue5);outline-offset:1px}",
+      ".lv-actbtn.ok{animation:lvpop .34s ease}",
+      "@keyframes lvpop{0%{transform:scale(1)}42%{transform:scale(1.16)}100%{transform:scale(1)}}",
+      ".lv-sw{transition:background .18s ease, box-shadow .15s ease}",
+      ".lv-sw:hover{box-shadow:0 0 0 3px rgba(91,163,208,.18)}",
+      ".lv-sw>i{transition:left .2s cubic-bezier(.34,1.4,.5,1), width .12s ease, background .18s ease}",
+      ".lv-sw:active>i{width:13px}",
+      ".lv-facet{transition:background .12s ease, transform .12s ease;border-radius:2px}",
+      ".lv-facet:hover{transform:translateX(2px)}",
+      ".lv-facet:active{transform:translateX(2px) scale(.99)}",
+      ".lv-facet .bar>i{transition:width .35s ease}",
+      ".lv-tile{transition:border-color .16s ease, transform .12s ease, box-shadow .16s ease}",
+      ".lv-tile:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.28);",
+      "border-top-color:#3f444d;border-right-color:#3f444d;border-bottom-color:#3f444d}",
+      ".lv-card{transition:border-color .16s ease, transform .12s ease, box-shadow .16s ease}",
+      ".lv-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.24)}",
+      ".lv-row{transition:background .12s ease}",
+      ".lv-row.click:active{background:rgba(91,163,208,.17)}",
+      ".lv-rule{transition:background .12s ease}",
+      ".lv-chip{transition:box-shadow .14s ease, color .14s ease}",
+      ".lv-chip:hover{box-shadow:inset 0 0 0 1px #4a5560;color:var(--fg)}",
+      ".lv-input,.lv-ta{transition:border-color .14s ease, box-shadow .14s ease}",
+      ".lv-input:focus,.lv-ta:focus{box-shadow:0 0 0 3px rgba(91,163,208,.15)}",
+      ".lv-drawer{animation:lvslide .2s cubic-bezier(.2,.7,.3,1)}",
+      "@keyframes lvslide{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}",
+      ".lv-drawer .dx{transition:color .12s ease, transform .12s ease}",
+      ".lv-drawer .dx:hover{transform:scale(1.15)}",
+      ".lv-pill{transition:filter .14s ease}",
+      ".lv-panel{animation:lvfade .22s ease}",
+      "@keyframes lvfade{from{opacity:.4}to{opacity:1}}",
+      /* navbar tabs + HUD controls (defined in the page shell) */
+      ".scr [style*=\"padding:0 15px\"]{transition:color .14s ease, box-shadow .14s ease}",
+      "#sysbtn{transition:opacity .15s ease, color .15s ease, background .15s ease, transform .09s ease, box-shadow .15s ease}",
+      "#sysbtn:hover{transform:translateY(-1px);box-shadow:0 2px 8px rgba(0,0,0,.4)}",
+      "#sysbtn:active{transform:translateY(0) scale(.96)}"
     ].join("");
     var st = mk("style"); st.id = "lv-style"; st.textContent = css;
     document.head.appendChild(st);
@@ -378,7 +421,8 @@
           getJSON("/api/respond", 1, post).then(function (r) {
             b.textContent = (r.ok ? "✓ " : "✗ ") + label;
             b.style.background = r.ok ? "#1C6E42" : "#8E292C";
-            setTimeout(tick, 400);
+            if (r.ok) b.classList.add("ok");
+            setTimeout(tick, 550);
           });
         };
         box.appendChild(b);
@@ -665,7 +709,8 @@
           getJSON("/api/respond", 1, post).then(function (r) {
             b.textContent = (r.ok ? "✓ " : "✗ ") + label;
             b.style.background = r.ok ? "#1C6E42" : "#8E292C";
-            setTimeout(tick, 400);
+            if (r.ok) b.classList.add("ok");
+            setTimeout(tick, 550);
           });
         };
         box.appendChild(b);
@@ -929,18 +974,23 @@
 
   /* ================================================================ navbar liveness */
   function updateNav(s, rl) {
-    var st = s.stats;
     var en = rl.filter(function (r) { return r.enabled; }).length, tot = rl.length;
     var newAlerts = (s.alerts || []).filter(function (a) { return a.status === "new"; }).length;
     var clock = clockUTC();
-    NAV.forEach(function (n) {
-      if (!n) return;
-      if (n.rules) n.rules.textContent = en + "/" + tot + " rules";
-      if (n.clock) n.clock.textContent = clock;
-      if (n.badge) {
-        n.badge.textContent = newAlerts;
-        n.badge.style.display = newAlerts ? "" : "none";
-      }
+    /* re-scan every navbar in the DOM each tick so later-injected screens
+       (Beacon Triage, Implants) get the same live rules-count/clock/badge as
+       the original five, instead of the frozen sample values from their clone. */
+    $$(".pg-screen").forEach(function (v) {
+      var scr = v.querySelector(".scr");
+      var navbar = scr && scr.firstElementChild;
+      if (!navbar) return;
+      $$(".mono", navbar).forEach(function (m) {
+        var t = (m.textContent || "").trim();
+        if (/\d+\s*\/\s*\d+\s*rules/i.test(t)) m.textContent = en + "/" + tot + " rules";
+        else if (/\d{4}-\d{2}-\d{2}.*z/i.test(t) || /:\d{2}\s*z/i.test(t)) m.textContent = clock;
+      });
+      var badge = navbar.querySelector(".tag");
+      if (badge) { badge.textContent = newAlerts; badge.style.display = newAlerts ? "" : "none"; }
     });
   }
 
