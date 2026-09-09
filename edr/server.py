@@ -110,7 +110,8 @@ class Handler(BaseHTTPRequestHandler):
                 html = f.read()
             inject = b""
             for jsfile in (LIVEJS, os.path.join(HERE, "beacon_triage.js"),
-                           os.path.join(HERE, "implants.js")):
+                           os.path.join(HERE, "implants.js"),
+                           os.path.join(HERE, "category_hits.js")):
                 try:
                     with open(jsfile, "rb") as f:
                         inject += b"<script>" + f.read() + b"</script>"
