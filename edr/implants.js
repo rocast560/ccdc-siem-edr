@@ -348,6 +348,55 @@
       tbl.appendChild(r);
     });
     evP._body.appendChild(tbl);
+
+    /* on-demand memory scan: the awake-vs-asleep sleep-encryption exercise */
+    if (b.pids && b.pids.length) {
+      var scanRow = mk("div");
+      scanRow.style.cssText = "display:flex;gap:6px;margin-top:6px;align-items:flex-start";
+      var sb = mk("button", "lv-actbtn", "Scan memory now");
+      sb.style.cssText = "flex:none;color:#0e1116;background:#8ABBFF;font-weight:bold";
+      sb.onclick = function () {
+        sb.disabled = true; sb.textContent = "scanning…";
+        var pid = b.pids[b.pids.length - 1];
+        getJSON("/api/scan/mem?pid=" + pid).then(function (r) {
+          sb.disabled = false; sb.textContent = "Scan memory now";
+          LAST_SCAN = { key: b.key, result: r };
+          renderScan();
+        }).catch(function () { sb.disabled = false; sb.textContent = "✗ scan failed"; });
+      };
+      scanRow.appendChild(sb);
+      var scanBox = mk("div");
+      scanBox.style.cssText = "flex:1;font:11px var(--mono)";
+      scanBox.id = "lv-scan-box";
+      scanRow.appendChild(scanBox);
+      evP._body.appendChild(scanRow);
+      renderScan();
+    }
+  }
+
+  var LAST_SCAN = null;
+  function renderScan() {
+    var box = $("#lv-scan-box");
+    if (!box) return;
+    box.innerHTML = "";
+    var b = CACHE.selected;
+    if (!b || !LAST_SCAN || LAST_SCAN.key !== b.key) return;
+    var r = LAST_SCAN.result || {};
+    if (r.error) {
+      box.appendChild(mk("div", null, "✗ " + r.error));
+      return;
+    }
+    var head = mk("div");
+    head.style.color = (r.hits && r.hits.length) ? "#FF9966" : "#43B97F";
+    head.textContent = r.hits && r.hits.length
+      ? "✓ SIGNATURES IN PLAINTEXT: " + r.hits.map(function (h) { return h.sig; }).join(", ")
+      : "✓ " + (r.result || "clean");
+    box.appendChild(head);
+    (r.hits || []).forEach(function (h) {
+      var d = mk("div", null, "   " + h.sig + " @ " + h.address);
+      d.style.color = "var(--fg2)";
+      box.appendChild(d);
+    });
   }
 
   function actBtn(label, color, post, onDone) {
