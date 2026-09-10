@@ -478,6 +478,68 @@ def _diff(base, cur):
                              "SSH backdoor surface changed: " + ent.split(":")[0], ent))
     return findings
 
+def check_exotic():
+    """Presence-anomalous persistence that never shows in a baseline diff of
+    standard locations (research: advanced-evasion-persistence-methods.md):
+
+    1. PERS-UAC-PROBE  - HKCU ms-settings shell hijack keys. These only ever
+       exist as part of fodhelper/computerdefaults-style auto-elevate bypass
+       probes; near-zero FP.
+    2. PERS-NTUSERMAN  - NTUSER.MAN profile hives. Writing persistence into
+       the .MAN hive rides hive-load at logon and never fires
+       registry-callback telemetry (Deceptiq research). The file should
+       basically never exist on a normal system.
+    """
+    found = []
+    # 1. UAC auto-elevate probe keys under HKCU
+    for probe in (r"Software\Classes\ms-settings\Shell\Open\command",
+                  r"Software\Classes\exefile\shell\open\command",
+                  r"Software\Classes\Interface\{DB61FD6B-6DA6-4D76-8B3C-7AA7E1DF5CC5}"):
+        try:
+            k = winreg.OpenKey(winreg.HKEY_CURRENT_USER, probe)
+            winreg.CloseKey(k)
+            state.raise_alert("PERS-UAC-PROBE", "high",
+                              "UAC auto-elevate probe key exists: " + probe,
+                              "An HKCU class-registration key used by fodhelper/computerdefaults-style "
+                              "UAC bypasses is present. Legitimate software does not create these under "
+                              "a user hive - treat as an active elevation probe.",
+                              data={"path": "HKCU\\" + probe})
+            found.append(("registry", "PERS-UAC-PROBE", probe))
+        except OSError:
+            pass
+    # 2. NTUSER.MAN hives in any profile ("Documents and Settings" is a
+    # junction to Users on modern Windows - walking both double-reports)
+    seen = set()
+    for root in (os.environ.get("USERPROFILE", r"C:\Users") + r"\..",
+                 r"C:\Users", r"C:\Users\Public"):
+        root = os.path.realpath(root)
+        if not root:
+            continue
+        try:
+            entries = os.listdir(root)
+        except OSError:
+            continue
+        for e in entries:
+            man = os.path.join(root, e, "NTUSER.MAN")
+            if os.path.realpath(man) in seen:
+                continue
+            try:
+                st = os.stat(man)
+            except OSError:
+                continue
+            seen.add(os.path.realpath(man))
+            state.raise_alert("PERS-NTUSERMAN", "high",
+                              "Profile mandatory hive present: " + man,
+                              "NTUSER.MAN is a mandatory profile hive loaded at logon. Persistence "
+                              "planted there rides hive-load and never triggers registry-callback "
+                              "telemetry (it bypasses CmRegisterCallback-based sensors). Normal "
+                              "systems do not carry this file outside domain-managed mandatory "
+                              "profiles - verify provenance and hash immediately.",
+                              data={"path": man, "size": st.st_size,
+                                    "mtime": st.st_mtime})
+            found.append(("file", "PERS-NTUSERMAN", man))
+    return found
+
 def audit_cycle():
     """Diff current inventory against baseline; emit events + alerts for new artifacts."""
     if not os.path.isfile(BASELINE_FILE):
@@ -487,6 +549,7 @@ def audit_cycle():
         base = json.load(f)
     cur = collect()
     findings = _diff(base, cur)
+    findings = findings + check_exotic()
     for kind, rule_id, sev, title, path in findings:
         rec = state.norm_event("auditor", kind, sev, title, {"path": path})
         # new service: scan its binary immediately (unsigned implant as svc)
