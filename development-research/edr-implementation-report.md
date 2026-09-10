@@ -568,3 +568,37 @@ New defensive research and test tooling for the Linux half of CCDC images:
 Note on scope: the EDR itself is Windows-only (ctypes/Win32); on Linux
 images detection comes from the guide's auditd ruleset + SIEM shipping.
 The linux-sim ground-truth log is the scoring interface between the two.
+
+---
+
+## Addendum 15 — Advanced evasion playbooks (sleep-cryption, stealth persistence, interval sabotage)
+
+New `playbooks/` directory: editable red-team playbooks that stress the EDR
+harder than the marked simulations, kept inside the purple-team safety
+contract (loopback-only beacons, no command channel, guarded sabotage on a
+dummy service only, JSON ground-truth ledger, per-OS cleanup + verify).
+
+- `sleep_crypt_implant.py` (cross-platform, ctypes): private-page payload
+  buffer, in-place XOR decrypt on wake, RW->RWX flip while active, loopback
+  beacon, in-place re-encryption before sleep, working-set trim
+  (SetProcessWorkingSetSize / madvise). While ASLEEP, memory scanners see
+  ciphertext only; while AWAKE the plaintext holds IMIX-style config
+  strings — scan timing is the detection lesson. Documented ceiling: real
+  implants use timer-ROP sleep masks (Ekko/Cronos/Foliage — sources in
+  playbooks/README.md); shipping ROP chains is out of scope.
+- Windows: `wb1` COM-hijack (HKCU CLSID shadow) + WMI event subscription +
+  randomized-name task; `wb2` fileless deploy of the sleep-crypt implant
+  (XOR blob + registry-hidden key + loader stub + logon task);
+  `wb3` guarded interval service sabotage on a dummy service with a
+  critical-services blocklist. Plus `wcleanup.ps1` / `wverify.ps1`
+  (ledger-driven).
+- Linux: `lb1` user-scope systemd + service-account cron @reboot + rc line +
+  unlinked binary; `lb2` tmpfs ciphertext deploy with /etc key stash;
+  `lb3` guarded systemd timer sabotage. Plus `lcleanup.sh` / `lverify.sh`.
+- EDR targets per playbook are listed in README.md scoring section — the
+  Implants screen should fuse wb2/lb2 into confirmed entities via cadence +
+  unbacked RWX + flips; stealth-persist artifacts map to PERS-COM,
+  PERS-WMI-SUB, PERS-TASK.
+
+All scripts syntax-validated (bash -n, py_compile, PSParser tokenize);
+implant smoke-run on Windows confirmed allocation/flip/cycle without crash.
