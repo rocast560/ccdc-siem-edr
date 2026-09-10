@@ -629,3 +629,25 @@ ceiling status for this EDR. Highlights:
   rule; three are Linux-image auditd/ops rules).
 
 Cross-linked from playbooks/README.md and the Linux persistence guide.
+
+---
+
+## Addendum 17 — Native sleep-crypt tester + two advanced persistence rules
+
+1. `playbooks/sleep_crypt_native.c` — the python-free counterpart of the
+   sleep-crypt simulator for machines without an interpreter. Deliberately
+   FIXED-BEHAVIOR: one private page, XOR in-place, RW<->RWX flips, loopback-
+   only beacon, working-set trim, jittered sleep. No payload slot, no
+   command channel, not position-independent — shellcode packaging is
+   deployment tooling, not detection testing, and is out of scope by the
+   same line as timer-ROP sleep masks (Addendum 15). MinGW builds double as
+   a SIG-MINGW signature test. Build commands in the header comment; not
+   compile-tested on this box (no toolchain).
+2. EDR shortlist items #2 and #3 implemented and verified live:
+   - `PERS-UAC-PROBE` — existence of HKCU ms-settings/exefile/ICMLuaUtil
+     shell-hijack keys (fodhelper-family auto-elevate probes).
+   - `PERS-NTUSERMAN` — NTUSER.MAN profile hives (persistence that rides
+     hive-load and bypasses registry-callback telemetry; Deceptiq research).
+   Both planted on this box, both fired within one audit cycle (30s),
+   artifacts then cleaned. Legacy-junction double-reporting deduped via
+   realpath.
