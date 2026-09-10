@@ -101,3 +101,14 @@ Copy a playbook, rename with your initials, edit the CONFIG block (names,
 intervals, CLSID, paths), add steps as numbered comment blocks. Keep the
 contract: loopback only, guarded sabotage, ledger every artifact, cleanup
 that can remove what you added.
+
+## Further techniques (research backlog)
+
+`development-research/advanced-evasion-persistence-methods.md` catalogs the
+tier above these playbooks with detection mappings: indirect syscalls and
+ghost-hunting, module stomping, ETW/AMSI in-process patching, NTUSER.MAN
+callback-free registry persistence, callback/fiber execution, herpaderping,
+UAC auto-elevate probes (Windows); the BPFDoor/eBPF passive-backdoor family,
+interpreter and package-manager persistence, sshd semantic tampering,
+systemd generators/tmpfiles.d, bind-mount hiding, initramfs (Linux). It ends
+with a six-item detection-upgrade shortlist ranked by effort.
