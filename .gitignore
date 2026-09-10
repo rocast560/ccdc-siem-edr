@@ -31,3 +31,9 @@ st_tmp.json
 # playbook runtime ground truth
 playbooks/ledger.jsonl
 playbooks/windows/*.log
+
+# taunt runtime
+taunts/taunt-ledger.jsonl
+taunts/windows/.orig-wallpaper
+taunts/windows/.tab-pids
+taunts/linux/.orig-wallpaper
