@@ -458,3 +458,27 @@ writes ground truth to `linux-sim/actions.log`. The test loop:
 - [Neo23x0 auditd config](https://gist.github.com/Neo23x0/9fe88c0c5979e017a389b90fd19ddfee) · [RHEL auditing docs](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/8/html/security_hardening/auditing-the-system_security-hardening)
 - LinuxSecurity: [persistence hunting top-5](https://linuxsecurity.com/features/linux-persistence-hunting-techniques) · [SSH key detection/removal](https://linuxsecurity.com/features/ssh-persistence-detection-removal-linux)
 - CCDC context: [jakeginesin CCDC walkthrough](https://jakegines.in/blog/2024/ccdc/) · [Ansible blue-team automation](https://marceltc.com/automating-blue-team-with-ansible-ccdc/) · [CCDC Blueteam Manual](https://github.com/C0nd4/CCDC-Blueteam-Manual)
+
+## Appendix — advanced additions (2025-26 research)
+
+`advanced-evasion-persistence-methods.md` (same directory) extends this
+guide with the tier above: eBPF passive backdoors (BPFDoor/LinkPro/J-magic)
+with load-time detection primitives, interpreter/package-manager
+persistence (sitecustomize.py, apt hooks, gcc specs), sshd semantic
+tampering (`sshd -T` hash watchdog), systemd generators/tmpfiles.d,
+bind-mount hiding (cross-view checks), and initramfs persistence. Add its
+auditd lines to the section-0 baseline:
+
+```
+## eBPF backdoors - detect at LOAD time (BPFDoor family)
+-a always,exit -F arch=b64 -S bpf -k ebpf
+-a always,exit -F arch=b64 -S perf_event_open -k ebpf
+-w /proc/sys/kernel/unprivileged_bpf_disabled -p wa -k ebpf
+## interpreter + package-manager persistence
+-w /usr/lib/python3/dist-packages/ -p wa -k interp
+-w /etc/apt/apt.conf.d/ -p wa -k pkg-hooks
+-w /usr/lib/rpm/macros -p wa -k pkg-hooks
+## systemd beyond units
+-w /run/systemd/ -p wa -k systemd
+-w /etc/tmpfiles.d/ -p wa -k systemd
+```

@@ -602,3 +602,30 @@ dummy service only, JSON ground-truth ledger, per-OS cleanup + verify).
 
 All scripts syntax-validated (bash -n, py_compile, PSParser tokenize);
 implant smoke-run on Windows confirmed allocation/flip/cycle without crash.
+
+---
+
+## Addendum 16 — Advanced evasion/persistence research (Windows + Linux)
+
+New `development-research/advanced-evasion-persistence-methods.md`: the tier
+above the existing guides/playbooks, each technique mapped to have/partial/
+ceiling status for this EDR. Highlights:
+
+- Windows: indirect syscalls vs our STACK-UNBACKED (spoofing = ceiling);
+  module stomping + ETW/AMSI patching -> generalizing NTDLL-TAMPER's
+  .text-vs-disk check to ALL modules closes two families at once;
+  NTUSER.MAN callback-free registry persistence (persistence auditor gap);
+  ms-settings UAC-probe registry rule (cheap win); callback/fiber execution
+  and herpaderping (ceiling / mitigated by memory-side scanning); BYOVD
+  (documented kernel ceiling).
+- Linux: the BPFDoor/eBPF passive-backdoor family — consensus detection is
+  load-time (bpf/perf_event_open audit keys, unprivileged_bpf_disabled
+  watch, program inventory diffs), provided as copy-paste rules;
+  interpreter/package-manager persistence watches; sshd -T semantic-hash
+  watchdog; systemd generators/tmpfiles.d; bind-mount hiding needing
+  cross-view verification; initramfs hashing.
+- Ends with a six-item detection-upgrade shortlist (three close real gaps
+  in this EDR: all-module .text-vs-disk, NTUSER.MAN alert, ms-settings
+  rule; three are Linux-image auditd/ops rules).
+
+Cross-linked from playbooks/README.md and the Linux persistence guide.
