@@ -192,7 +192,8 @@
       ".lv-sw.off{background:var(--well);box-shadow:inset 0 0 0 1px var(--line)} .lv-sw.off>i{left:2px;background:#5e666f}",
       /* buttons row helper */
       ".lv-acts{display:flex;gap:6px;flex-wrap:wrap;align-items:center}",
-      ".lv-actbtn{height:20px;padding:0 8px;font:600 10.5px var(--ui);border-radius:2px;border:none;cursor:pointer}",
+      ".lv-actbtn{min-height:20px;padding:3px 9px;font:600 10.5px/1.35 var(--ui);border-radius:2px;",
+      "border:none;cursor:pointer;text-align:left;white-space:normal;overflow-wrap:anywhere}",
       /* cards */
       ".lv-card{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--blue4);",
       "border-radius:2px;padding:9px 11px;display:flex;flex-direction:column;gap:5px}",
