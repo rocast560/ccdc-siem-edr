@@ -27,3 +27,7 @@ delete
 tests/bin/
 im_tmp.json
 st_tmp.json
+
+# playbook runtime ground truth
+playbooks/ledger.jsonl
+playbooks/windows/*.log
