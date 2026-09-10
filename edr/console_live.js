@@ -1026,3 +1026,150 @@
   window.addEventListener("hashchange", applyHash);
   applyHash();
 })();
+
+/* ============================ left command sidebar (Gotham ops layout) ============================
+   Replaces the top tab bar with a fixed left rail. Reuses the existing per-screen
+   switching by toggling .is-active directly, so all seven screens (incl. the
+   later-injected Beacon Triage / Implants) work. Runs after the main IIFE. */
+(function buildSidebar() {
+  "use strict";
+  var d = document;
+  if (d.getElementById("gv-side")) return;
+  if (d.querySelectorAll(".pg-screen").length < 5) return;
+
+  var css = [
+    "#gv-side{position:fixed;left:0;top:0;bottom:0;width:200px;z-index:45;background:#0e1115;",
+    "border-right:1px solid var(--line);display:flex;flex-direction:column;font-family:var(--ui);-webkit-font-smoothing:antialiased}",
+    "#gv-side .gv-brand{display:flex;align-items:center;gap:10px;height:50px;padding:0 16px;border-bottom:1px solid var(--line);flex:none}",
+    "#gv-side .gv-brand b{font:600 13.5px var(--ui);color:var(--fg);letter-spacing:.04em}",
+    "#gv-side .gv-brand i{color:var(--fg4);font-style:normal}",
+    "#gv-nav{flex:1;overflow:auto;padding:6px 0}",
+    "#gv-nav .gv-sec{font:600 9px var(--ui);letter-spacing:.15em;text-transform:uppercase;color:var(--fg4);padding:11px 16px 4px}",
+    ".gv-item{display:flex;align-items:center;gap:11px;height:36px;padding:0 16px;cursor:pointer;color:var(--fg3);",
+    "font:500 12.5px var(--ui);border-left:2px solid transparent;transition:background .12s ease,color .12s ease}",
+    ".gv-item svg{width:15px;height:15px;flex:none;stroke:currentColor;stroke-width:1.5;fill:none}",
+    ".gv-item:hover{color:var(--fg);background:rgba(255,255,255,.035)}",
+    ".gv-item.on{color:var(--fg);background:rgba(78,166,209,.13);border-left-color:var(--blue4)}",
+    ".gv-item .gv-b{margin-left:auto;min-width:16px;text-align:center;background:#c0392e;color:#fff;",
+    "font:600 10px var(--mono);padding:1px 5px;border-radius:9px}",
+    "#gv-foot{flex:none;border-top:1px solid var(--line);padding:10px 16px;display:flex;flex-direction:column;",
+    "gap:5px;font:11px var(--mono);color:var(--fg4)}",
+    "#gv-foot .r{display:flex;justify-content:space-between;gap:8px}",
+    "#gv-foot .r b{color:var(--fg2);font-weight:600;font-variant-numeric:tabular-nums}",
+    "#gv-live{width:7px;height:7px;border-radius:50%;background:var(--green5);display:inline-block;margin-right:6px;vertical-align:middle}",
+    "#gv-live.off{background:#CD4246}",
+    /* make room for the rail + retire the old top navbars */
+    ".scr{width:calc(100vw - 200px) !important;margin-left:200px}",
+    ".pg-screen .scr>div:first-child{display:none !important}"
+  ].join("");
+  var st = d.createElement("style"); st.id = "gv-style"; st.textContent = css; d.head.appendChild(st);
+
+  var ICON = {
+    dashboard: '<rect x="2" y="2" width="5" height="5"/><rect x="9" y="2" width="5" height="5"/><rect x="2" y="9" width="5" height="5"/><rect x="9" y="9" width="5" height="5"/>',
+    logs: '<path d="M2.5 4h11M2.5 8h11M2.5 12h7"/>',
+    alerts: '<path d="M8 2.4l6 11.2H2z"/><path d="M8 6.6v3.1"/><path d="M8 11.5v.2"/>',
+    signatures: '<circle cx="8" cy="8" r="5.2"/><path d="M8 2.8v10.4M2.8 8h10.4"/>',
+    intel: '<circle cx="8" cy="8" r="5.6"/><path d="M2.4 8h11.2M8 2.4c3 2.6 3 8.6 0 11.2M8 2.4c-3 2.6-3 8.6 0 11.2"/>',
+    beacons: '<path d="M2 8h2.4l1.7-4.8L9.1 12.8l1.7-4.8H14"/>',
+    implants: '<circle cx="8" cy="8" r="3.1"/><path d="M8 1.5v2.1M8 12.4v2.1M1.5 8h2.1M12.4 8h2.1M4 4l1.2 1.2M10.8 10.8 12 12M12 4l-1.2 1.2M4 12l1.2-1.2"/>'
+  };
+  var ITEMS = [
+    { sec: "Monitor" },
+    { label: "Dashboard", key: "dashboard", core: 0 },
+    { label: "Log Explorer", key: "logs", core: 1 },
+    { label: "Alerts", key: "alerts", core: 2, badge: true },
+    { sec: "Detect" },
+    { label: "Signatures", key: "signatures", core: 3 },
+    { label: "Threat Intel", key: "intel", core: 4 },
+    { sec: "Respond" },
+    { label: "Beacon Triage", key: "beacons", name: "beacon triage" },
+    { label: "Implants", key: "implants", name: "implants" }
+  ];
+
+  /* the 5 core screens exist now; capture stable element refs (indices shift
+     once Beacon Triage/Implants are inserted, so we can't rely on position) */
+  var coreScreens = Array.prototype.slice.call(d.querySelectorAll(".pg-screen")).slice(0, 5);
+
+  var side = d.createElement("div"); side.id = "gv-side";
+  var brand = d.createElement("div"); brand.className = "gv-brand";
+  brand.innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">' +
+    '<path d="M10 1.5 17.5 5.5v6.2c0 3.1-3 5.7-7.5 6.8-4.5-1.1-7.5-3.7-7.5-6.8V5.5L10 1.5Z" stroke="#4ea6d1" stroke-width="1.4" fill="rgba(78,166,209,.16)"/>' +
+    '<path d="M6.6 9.9 9.1 12.4 13.6 7.6" stroke="#86c8ea" stroke-width="1.6" stroke-linecap="square"/></svg>' +
+    '<b>CCDC<i> · </i>EDR</b>';
+  side.appendChild(brand);
+
+  var nav = d.createElement("div"); nav.id = "gv-nav";
+  var itemEls = {}; var badgeEl = null;
+  ITEMS.forEach(function (it) {
+    if (it.sec) { var s = d.createElement("div"); s.className = "gv-sec"; s.textContent = it.sec; nav.appendChild(s); return; }
+    var el = d.createElement("div"); el.className = "gv-item"; el.tabIndex = 0;
+    el.innerHTML = '<svg viewBox="0 0 16 16">' + ICON[it.key] + '</svg>';
+    var lab = d.createElement("span"); lab.textContent = it.label; lab.style.flex = "1"; el.appendChild(lab);
+    if (it.badge) { badgeEl = d.createElement("span"); badgeEl.className = "gv-b"; badgeEl.style.display = "none"; el.appendChild(badgeEl); }
+    el.onclick = function () { activate(it); };
+    el.onkeydown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); activate(it); } };
+    nav.appendChild(el); itemEls[it.key] = el;
+  });
+  side.appendChild(nav);
+
+  var foot = d.createElement("div"); foot.id = "gv-foot";
+  foot.innerHTML =
+    '<div class="r"><span><span id="gv-live"></span><span id="gv-conn">live</span></span><b id="gv-clock">—</b></div>' +
+    '<div class="r"><span>events</span><b id="gv-ev">0</b></div>' +
+    '<div class="r"><span>alerts</span><b id="gv-al">0</b></div>' +
+    '<div class="r"><span>rules active</span><b id="gv-ru">0/0</b></div>';
+  side.appendChild(foot);
+  d.body.appendChild(side);
+
+  function findScreen(it) {
+    if (it.core != null) return coreScreens[it.core];
+    var all = d.querySelectorAll(".pg-screen");
+    for (var i = 0; i < all.length; i++) {
+      var nm = all[i].querySelector(".pg-name");
+      if (nm && nm.textContent.trim().toLowerCase() === it.name) return all[i];
+    }
+    return null;
+  }
+  function setActive(key) {
+    for (var k in itemEls) if (itemEls.hasOwnProperty(k)) itemEls[k].classList.toggle("on", k === key);
+  }
+  function activate(it) {
+    var target = findScreen(it); if (!target) return;
+    Array.prototype.forEach.call(d.querySelectorAll(".pg-screen"), function (v) {
+      v.classList.toggle("is-active", v === target);
+    });
+    var scr = target.querySelector(".scr"); if (scr) scr.scrollTop = 0;
+    try { if (location.hash.replace(/^#/, "") !== it.key) location.hash = it.key; } catch (e) {}
+    setActive(it.key);
+  }
+  var KEYMAP = { dashboard: "dashboard", logs: "logs", "log-explorer": "logs", alerts: "alerts",
+                 signatures: "signatures", intel: "intel", "threat-intel": "intel",
+                 beacons: "beacons", implants: "implants" };
+  function syncHash() {
+    var k = KEYMAP[(location.hash || "").replace(/^#/, "").toLowerCase()];
+    setActive(k || "dashboard");
+  }
+  window.addEventListener("hashchange", syncHash);
+  syncHash();
+
+  function p2(n) { return (n < 10 ? "0" : "") + n; }
+  function pollSide() {
+    fetch("/api/state").then(function (r) { return r.json(); }).then(function (s) {
+      var stt = s.stats || {};
+      d.getElementById("gv-ev").textContent = (stt.events_total || 0).toLocaleString();
+      d.getElementById("gv-al").textContent = (stt.alerts_total || 0).toLocaleString();
+      var nw = (s.alerts || []).filter(function (a) { return a.status === "new"; }).length;
+      if (badgeEl) { badgeEl.textContent = nw; badgeEl.style.display = nw ? "" : "none"; }
+      var t = new Date();
+      d.getElementById("gv-clock").textContent = p2(t.getUTCHours()) + ":" + p2(t.getUTCMinutes()) + ":" + p2(t.getUTCSeconds()) + "Z";
+      d.getElementById("gv-live").classList.remove("off"); d.getElementById("gv-conn").textContent = "live";
+    }).catch(function () {
+      d.getElementById("gv-live").classList.add("off"); d.getElementById("gv-conn").textContent = "offline";
+    });
+    fetch("/api/rules").then(function (r) { return r.json(); }).then(function (rl) {
+      var en = rl.filter(function (x) { return x.enabled; }).length;
+      d.getElementById("gv-ru").textContent = en + "/" + rl.length;
+    }).catch(function () {});
+  }
+  pollSide(); setInterval(pollSide, 2500);
+})();
