@@ -535,3 +535,36 @@ button, status chip QUARANTINED, verification checklist green, entity shows
 INACTIVE-contained. Guardrails re-verified: EDR/lsass/protected-path
 refusals intact; a Program Files interpreter image is refused for
 quarantine by design (the EDR also refuses to vault its own interpreter).
+
+---
+
+## Addendum 14 — Linux persistence/evasion research + interval attack simulator
+
+New defensive research and test tooling for the Linux half of CCDC images:
+
+- `development-research/linux-persistence-evasion-guide.md` — full
+  plant/detect/clean walkthroughs: UID-0 users, authorized_keys (incl.
+  forced-command and authorized_keys2), PAM skeleton key, cron variants,
+  systemd services/timers (system + user scope), udev RUN+= rules,
+  /etc/ld.so.preload hijacking, shell rc/profile.d, memfd_create fileless
+  execution, deleted binaries, timestomping, chattr +i, log clearing,
+  firewall sabotage (with a blue-team re-arm watchdog), history/accounting
+  sabotage, C2 channels (SSH tunnels, ICMP/DNS, watershell PF_PACKET), and
+  webshells. Includes a copy-paste auditd baseline ruleset that keys every
+  technique, and a first-hour baseline-snapshot procedure. Sources: Elastic
+  Security Labs persistence series, PANIX, pberba hunting series, Sandfly,
+  Neo23x0 auditd config.
+- `linux-sim/` — automated interval attack simulation: 14 marked, benign
+  technique scripts (nothing touches the network; payloads are sleep loops),
+  a runner with `--all` / `--only` / `--interval N --count N` chaos mode
+  (random technique every N seconds — the "add users / kill firewalls at
+  intervals" scenario), JSON ground-truth logging to `actions.log` for
+  scoring detections against what actually happened, plus `cleanup.sh` and
+  a 21-check `verify.sh` that proves the image is clean afterwards.
+  Windows-side counterparts of the same families already exist in the EDR
+  (PERS-*, SPAWN-SHELL, TIME-STOMP, TAMPER-AUDIT, NET-BEACON, PKT-SOCKET)
+  and the `tests/` tranches play the same role there.
+
+Note on scope: the EDR itself is Windows-only (ctypes/Win32); on Linux
+images detection comes from the guide's auditd ruleset + SIEM shipping.
+The linux-sim ground-truth log is the scoring interface between the two.
