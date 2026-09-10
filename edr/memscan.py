@@ -72,9 +72,11 @@ def _candidate_processes():
     cands.sort(key=lambda c: c[3], reverse=True)
     return [(pid, name, path) for pid, name, path, _ in cands]
 
-def scan_process(pid, name, path):
-    """Scan one process's committed memory; alert on signature hits."""
-    if pid in _scanned_pids or pid == os.getpid():
+def scan_process(pid, name, path, force=False):
+    """Scan one process's committed memory; alert on signature hits.
+    force=True bypasses the already-scanned cache (on-demand console scans:
+    the awake-vs-asleep sleep-encryption exercise needs repeated scans)."""
+    if (pid in _scanned_pids and not force) or pid == os.getpid():
         return []
     h = k32.OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, False, pid)
     if not h:

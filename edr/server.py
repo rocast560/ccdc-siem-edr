@@ -145,6 +145,29 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, network.cadence_snapshot())
         elif u.path == "/api/implants":
             self._send(200, correlation.compute())
+        elif u.path == "/api/scan/mem":
+            try:
+                pid = int((q.get("pid") or ["0"])[0])
+            except ValueError:
+                self._send(400, {"error": "bad pid"})
+                return
+            if pid <= 0:
+                self._send(400, {"error": "pid parameter required"})
+                return
+            name, path = "", ""
+            for p in modules._processes():
+                if p[0] == pid:
+                    name, path = p[1], p[2]
+                    break
+            if not name:
+                self._send(200, {"pid": pid, "error": "process not found"})
+                return
+            hits = memscan.scan_process(pid, name, path, force=True)
+            self._send(200, {"pid": pid, "name": name, "path": path,
+                             "hits": [{"sig": s, "address": a} for s, a in hits],
+                             "result": "hits" if hits else
+                               "clean - no signature plaintext in scannable memory "
+                               "(if this implant sleep-encrypts, catch it during its awake window)"})
         elif u.path == "/api/intel":
             ip = (q.get("ip") or [""])[0]
             if not ip:

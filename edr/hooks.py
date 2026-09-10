@@ -113,6 +113,118 @@ def _find_mapped(h, modulename="ntdll.dll"):
     """Reserved for future per-module integrity checks."""
     return None
 
+# ---------------------------------------------------------------- module
+# stomping / in-memory ETW-AMSI patch detection: generalize the ntdll
+# .text-vs-disk comparison to EVERY loaded module (research shortlist #1).
+# A legit signed DLL whose in-memory .text no longer matches disk means
+# module stomping, in-process ETW/AMSI patching, or API hook restoration.
+_disk_text_cache = {}      # path -> (mtime, size, data, raddr, tsize)
+_mod_cycle = {}            # pid -> rotation cursor over its module list
+MAX_MODULES_PER_PASS = 10
+
+def _disk_text(path):
+    """PE .text bytes from disk, cached by (mtime, size). (data, raddr, tsize)."""
+    try:
+        st = os.stat(path)
+        key = (st.st_mtime, st.st_size)
+    except OSError:
+        return None
+    hit = _disk_text_cache.get(path)
+    if hit and hit[0] == key:
+        return hit[1]
+    try:
+        data = open(path, "rb").read(12 * 1024 * 1024)
+    except OSError:
+        return None
+    if len(data) < 0x40 or data[:2] != b"MZ":
+        return None
+    pe_off = struct.unpack_from("<I", data, 0x3C)[0]
+    if pe_off + 26 > len(data):
+        return None
+    nsec = struct.unpack_from("<H", data, pe_off + 6)[0]
+    opt_size = struct.unpack_from("<H", data, pe_off + 20)[0]
+    sec_off = pe_off + 24 + opt_size
+    out = None
+    for i in range(nsec):
+        off = sec_off + i * 40
+        if off + 40 > len(data):
+            break
+        name = data[off:off + 8].rstrip(b"\x00")
+        vsize, vaddr, rsize, raddr = struct.unpack_from("<IIII", data, off + 8)
+        if name == b".text":
+            out = (data, raddr, vaddr, min(rsize, vsize))
+            break
+    if len(_disk_text_cache) > 64:      # bound the cache
+        _disk_text_cache.clear()
+    _disk_text_cache[path] = (key, out)
+    return out
+
+def check_module_integrity(pid, name, path, h):
+    """Compare every loaded module's .text against its on-disk copy."""
+    from . import modules as _mods
+    mods = [m for m in _mods._modules_with_base(pid)
+            if m[0].lower() != "ntdll.dll" and m[2]]     # ntdll handled above
+    if not mods:
+        return
+    # user-writable-path modules first: stomping drops its DLL outside
+    # System32 (or loads a System32 copy from elsewhere); those are the
+    # high-signal targets and sit LAST in load order, so plain load order
+    # would never reach them within the per-pass module budget
+    mods.sort(key=lambda m: 0 if not (m[1] or "").lower().startswith(r"c:\windows") else 1)
+    start = _mod_cycle.get(pid, 0) % len(mods)
+    _mod_cycle[pid] = start + MAX_MODULES_PER_PASS
+    buf = ctypes.create_string_buffer(0x10000)
+    got = ctypes.c_size_t(0)
+    for mod_name, mod_path, base in mods[start:start + MAX_MODULES_PER_PASS]:
+        disk = _disk_text(mod_path)
+        if not disk:
+            continue
+        data, raddr, vaddr, tsize = disk
+        # version-skew guard: if the on-disk file was REPLACED after this
+        # process mapped it (chrome/edge auto-update churn), the mapped .text
+        # legitimately belongs to the old build - comparing would false-positive.
+        # The mapped PE TimeDateStamp vs the disk copy's tells them apart.
+        mhdr = ctypes.create_string_buffer(0x400)
+        got0 = ctypes.c_size_t(0)
+        if not k32.ReadProcessMemory(h, ctypes.c_void_p(base), mhdr, 0x400,
+                                     ctypes.byref(got0)) or got0.value < 0x400:
+            continue
+        try:
+            m_pe = struct.unpack_from("<I", mhdr.raw, 0x3C)[0]
+            m_ts = struct.unpack_from("<I", mhdr.raw, m_pe + 8)[0]
+            d_pe = struct.unpack_from("<I", data, 0x3C)[0]
+            d_ts = struct.unpack_from("<I", data, d_pe + 8)[0]
+            if m_ts and d_ts and m_ts != d_ts:
+                continue                      # file updated since load - skip
+        except struct.error:
+            continue
+        tsize = min(tsize, 0x400000)
+        diffs = []
+        for ofs in range(0, tsize, 0x10000):
+            n = min(0x10000, tsize - ofs)
+            # memory is mapped at base+vaddr; the disk copy holds the same
+            # bytes at raddr (file alignment) - compare the correct pair
+            if not k32.ReadProcessMemory(h, ctypes.c_void_p(base + vaddr + ofs),
+                                         buf, n, ctypes.byref(got)):
+                continue
+            if got.value == n and buf.raw[:n] != data[raddr + ofs:raddr + ofs + n]:
+                diffs.append(hex(base + vaddr + ofs))
+            if len(diffs) >= 4:
+                break
+        # >=2 differing 64KB chunks: one-chunk noise (layout quirks, hotpatch
+        # slots) stays quiet, a real stomp rewrites whole functions
+        if len(diffs) >= 2:
+            state.raise_alert("MOD-STOMPPED", "critical",
+                              "Module stomped: %s in %s (pid %d)" % (mod_name, name, pid),
+                              "The in-memory .text of a loaded module no longer matches its on-disk "
+                              "file across multiple regions. This is module stomping (executing "
+                              "payload from a signed DLL's code), in-process ETW/AMSI patching, or "
+                              "wholesale API hooking - all of which require rewriting a module's "
+                              "code in memory. Legitimate software does not rewrite signed module "
+                              ".text after load.",
+                              data={"pid": pid, "path": path, "module": mod_name,
+                                    "module_path": mod_path, "regions": diffs})
+
 def check_ntdll(pid, name, path, h):
     cached = _disk_ntdll_text()
     if not cached:
@@ -298,6 +410,7 @@ def poll(limit=8):
         _checked.add(pid)
         try:
             check_ntdll(pid, name, path, h)
+            check_module_integrity(pid, name, path, h)
             check_threads(pid, name, path, h)
         finally:
             k32.CloseHandle(h)
