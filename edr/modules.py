@@ -81,6 +81,26 @@ def _modules(pid):
         k32.CloseHandle(snap)
     return out
 
+def _modules_with_base(pid):
+    """(name, path, base) for a pid's modules — base needed for .text
+    integrity comparison (module-stomping detection)."""
+    snap = k32.CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, pid)
+    if not snap or snap == INVALID_HANDLE_VALUE:
+        return []
+    out = []
+    me = MODULEENTRY32W()
+    me.dwSize = ctypes.sizeof(MODULEENTRY32W)
+    try:
+        if k32.Module32FirstW(snap, ctypes.byref(me)):
+            while True:
+                out.append((me.szModule, me.szExePath, me.modBaseAddr or 0))
+                me.dwSize = ctypes.sizeof(MODULEENTRY32W)
+                if not k32.Module32NextW(snap, ctypes.byref(me)):
+                    break
+    finally:
+        k32.CloseHandle(snap)
+    return out
+
 def _alert(rule, sev, title, why, pid, path, extra=None):
     key = (rule, pid, path.lower())
     if key in _alerted:

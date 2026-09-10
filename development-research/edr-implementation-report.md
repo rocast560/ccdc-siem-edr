@@ -651,3 +651,36 @@ Cross-linked from playbooks/README.md and the Linux persistence guide.
    Both planted on this box, both fired within one audit cycle (30s),
    artifacts then cleaned. Legacy-junction double-reporting deduped via
    realpath.
+
+---
+
+## Addendum 18 — Manual test walkthroughs + module-stomping detector + on-demand memory scan
+
+Answers "how do I manually test my EDR against the advanced tier" for the
+technique class documented in Addendum 15/17's ceiling notes:
+
+1. **`docs/edr-manual-test-walkthroughs.md`** — 8 hands-on labs: compiled
+   implant lifecycle (score 99 -> UI quarantine -> verified inactive),
+   awake-vs-asleep scan timing, module stomping, NTUSER.MAN + UAC probes,
+   stealth persistence delivery (wb1), sabotage + taunt delivery, a
+   refused-technique -> detector mapping table, and the Linux pointer lab.
+   Each lab: steps / expected rules / verify / cleanup / what a miss means.
+2. **`MOD-STOMPPED`** (hooks.py) — the all-module .text-vs-disk check
+   (research shortlist #1): catches module stomping and in-process
+   ETW/AMSI patching. Three bugs found and fixed during live verification:
+   (a) section virtual-address vs file-offset skew made every comparison
+   misalign (systematic FPs on chrome/msedge/msys) — memory side now uses
+   vaddr, disk side raddr; (b) browser auto-update version skew (file
+   replaced under a running process) — skipped via mapped-vs-disk PE
+   TimeDateStamp comparison; (c) load-order module window never reached
+   last-loaded (user-path) DLLs — user-writable-path modules now sorted
+   first. Final live verification: the self-stomp test
+   (`tests/self_stomp_test.py`, patches two .text chunks of a loaded DLL
+   copy in its own memory) fired exactly once on exactly the patched
+   module with exactly the patched regions, zero false positives.
+3. **On-demand memory scan** — `/api/scan/mem?pid=` (force-rescan bypasses
+   the periodic-scan cache) + "Scan memory now" button in the Implants
+   evidence panel: the awake-vs-asleep sleep-encryption exercise is now a
+   button press (scan during the plaintext window finds signatures; during
+   the encrypted window it reports clean — the structural rules are what
+   survive encryption).
